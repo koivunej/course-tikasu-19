@@ -1,0 +1,175 @@
+;/*****************************************************************\
+;** filename	 * solidsrv.ini
+;**		 *
+;** description  * Lists configuration parameters of 
+;**		 * Solid server.
+;**		 *
+;**		 * For a more complete description of the 
+;**		 * parameters, please refer to the 
+;**		 *     Administrator's Guide
+;**		 *
+;** Copyright 	(C) Solid Information Technology Ltd 1999-2003
+;\*****************************************************************/
+
+[Srv]
+
+Name = musadb
+; Gives a specific name to a database.  This name is displayed in 
+; server startup messages and with an icon in Windows operating 
+; systems.
+                          
+
+AllowConnect = yes
+; If set to 'yes', the database is "open" to new connections -- i.e. 
+; new connections are accepted.
+
+;aika rauhallinen aika yöllä joka yö!!! ja juuri ennen nauhavarmistusta
+At = 2:30 backup
+
+;*******************************************************************
+[General]
+
+;heitetään backup sinne missä se on myös kirjoitettu nauhalle joskus
+BackupDirectory = /export/tikaja/db1/${USER}/musabackup
+; Default directory for backups.
+
+;logit on kanssa kiva kopioida jos tarvitaa niitä palauttamiseen myöhemmin
+BackupCopyLog = yes
+; When set to 'yes', log files are copied into backup directory
+; in backup operation.
+
+;VAROITUS: jos tosiaan tuhoaa 'tarpeettomat' logit niin tämäkin on ok
+BackupDeleteLog = yes
+; If set to 'yes', unnecessary log files are deleted after a 
+; backup operation has been completed successfully.
+
+;varmuuskopioidaan ini tiedosto (ei vaadi juuri resursseja)
+BackupCopyIniFile = yes
+; SOLID.INI file is copied into backup directory with the 
+; backup operation.
+                 
+
+;oletetaan, että ollaan suomessa eli noin 5000 mainoskuuntelua/minuutti niin noin 1 tunnin välein otettaisiin checkpoint, toistaalta globaalissa systeemissä voisi olla asia toisin esim. 50 miljoonan logi päivityksen välein
+CheckpointInterval = 50000
+; Number of log writes before a checkpoint is automatically 
+; generated.
+
+;default on ok
+LongSequentialSearchLimit = 500
+; If a query returns more rows than this limit, the I/O manager 
+; switches to long sequential search mode. 
+
+;vaikea arvioida (ehkä 25% olisi parempi kuitenkin paljon päivityksiä)
+SearchBufferLimit = 50
+; Maximum percentage of cache allocated for search buffers.
+
+;cachen koko vaikuttaa (aika epäselvä, että kuinka paljon)
+TransactionHashSize = 4000
+; Hash table size for incomplete transactions.
+; Depends on the cache size
+
+;DefaultStoreIsMemory = no
+; If set to 'yes', in-memory tables are created
+; by default with standard CREATE TABLE.
+
+
+;*******************************************************************
+[IndexFile]
+;käyttäjämääräksi arvioitiin 10000
+;valittiin 100 gigaa mainosten kautta, koska 1 mainos voi olla 200M ja mainoksia mahdollisesti voi olla 100 kappaletta tietokannassa. saadaan tästä noin. 20 gigaa ja tämä kerrottuna 5 on 100 gigaa ja se jaettuna 2 saadaan molemmille levyille varattava tila
+FileSpec_1 = /export/tikaja/db2/${USER}/solid.db 50G
+FileSpec_2 = /export/tikaja/db3/${USER}/solid.db 50G
+; Defines the name, location and maximum size of the database file.
+
+BlockSize = 8192 ; bytes                              
+; Blocksize of the database file. This parameter can not be 
+; changed after the database file has been created.
+
+;unix
+CacheSize = 4194304
+; the default value of the CacheSize parameter depends on the server 
+; platform 
+; WinNT: 33554432
+; UNIXes: 4194304
+; OpenVMS: 4194304
+; NLM: 1048576
+       
+
+;*******************************************************************
+[Logging]
+
+LogEnabled = yes                                 
+; Transaction logging is enabled.  Transaction logs are used in 
+; recovery after an abnormal shutdown.
+
+;oletetaan 4k tiedostojärjestelmä
+BlockSize = 4096 ; bytes                                
+; Block size of log files is 2048 bytes.
+
+;tiukin mahdollinen
+DurabilityLevel = 3
+
+MinSplitSize = 10485760 
+; This parameter describes a limit of logfile size. When this size 
+; is reached, logging will be continued to next log file after next 
+; checkpoint creation.
+
+;sijoitetaan paikkaan missä nauhalle kirjoitusta tapahtuu
+FileNameTemplate = /export/tikaja/db1/${USER}/sol#####.log           
+; Name of log files is sol#####.log where # is a template character.   
+
+;*****************************************************************
+[SQL]
+
+                  
+;unix default
+SortArraySize = 2000
+; Size of the internal sorting buffer. If external sorting is used,
+; external sorting is used for result sets bigger than this limit.
+; WinNT: 1000
+; UNIXes: 2000
+; OpenVMS: 2000
+; NLM: 500
+; Note that the "units" are not bytes/kb/mb.  The value is the number 
+; of elements in the sort array.  
+
+
+;*****************************************************************
+[Com]
+
+;kuunnellaan ensimmäistä ryhmän porttia 
+Listen = tcpip aapiskukko.cs.tut.fi 44190
+; The network name for the server; the protocol and name that SOLID 
+; Server uses when it starts listening to the network.
+
+TraceFile = soltrace.out 
+; Name of a file where communication trace is written.
+
+;*****************************************************************
+[Sorter]
+
+;oma temp kansio
+TmdDir_1 = /export/tikaja/db3/${USER}/temp/
+; Name of the directory that may contain temporary files
+; that are created during sorting.  This directory has to have
+; write access for solid processes.
+; TmpDir_2 =   ; Defines second sort directory.
+
+
+;*****************************************************************
+[Data Sources]
+;<logical name> =
+;<network name>,
+;<Description>
+
+; These parameters can be used to give a logical name to a Solid
+; Database Engine.
+
+[MME]
+;käytetään defaulttia
+;LockHashSize=1000000
+; The number is the size of the in-memory lock table,
+; in number of locks. Should be close to the total number of
+; locks used at any given time. If the number is smaller
+; then required, update performance may suffer.
+
