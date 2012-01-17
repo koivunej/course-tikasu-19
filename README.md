@@ -21,23 +21,23 @@ setup
 structuring
 ===========
 
-./MAKEFILE
+./*/Makefile
 ----------
 
-i think we should put all our "common tasks" here, like: 
-  * setting up the database: 
-    * starting it
-    * dropping everything
-    * cleaning everything
-    * shutting it down 
-    * perhaps a status query?
-  * drop-all.sql creation
-  * pushing php app to server
+i think we should put all our "common tasks" into Makefiles, like: 
+ * setting up the database: 
+   * starting it
+   * dropping everything
+   * cleaning everything
+   * shutting it down 
+   * perhaps a status query?
+ * drop-all.sql creation
+ * pushing php app to server
 
 ./database
 ----------
 
-lets put our solid sql here.
+lets put our solids sql et al here.
 
 ./app
 ----------
