@@ -25,12 +25,13 @@ structuring
 ----------
 
 i think we should put all our "common tasks" into Makefiles, like: 
+
  * setting up the database: 
-   * starting it
-   * dropping everything
-   * cleaning everything
-   * shutting it down 
-   * perhaps a status query?
+  * starting it
+  * dropping everything
+  * cleaning everything
+  * shutting it down 
+  * perhaps a status query?
  * drop-all.sql creation
  * pushing php app to server
 
