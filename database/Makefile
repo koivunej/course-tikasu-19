@@ -54,7 +54,7 @@ stop_solid:
 send_schema: solid.ini $(HOME)/.solidcreds
 
 	@for i in sql.d/*.sql; do\
-		@echo 'Importing $$i, logging to $$i.log...
+		@echo 'Importing $$i, logging to $$i.log...'
 		solsql "`grep Listen solid.ini|sed -e 's/^.*=\s\(.\+\)\s*/\1/'`" \
 			`head -1 $(HOME)/.solidcreds` `tail -1 $(HOME)/.solidcreds` \
 			$$i | tee $$i.log | grep Error; \
