@@ -1,12 +1,12 @@
 course-tikasu-19
 ================
 
-this is repo for our work for TUT [1] course OHJ-3321 [2] designing databases.
+this is repo for our work for [TUT] [1] course [OHJ-3321] [2] designing databases.
 
 i guess all code we push is GPL however you are restricted from using it if you are on the same course implementation.
 
- [1] = http://www.tut.fi
- [2] = http://www.cs.tut.fi/~tikasu/
+ [1]: http://www.tut.fi
+ [2]: http://www.cs.tut.fi/~tikasu/
 
 setup
 =====
