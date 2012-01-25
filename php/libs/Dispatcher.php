@@ -21,17 +21,21 @@ class Dispatcher {
 	    } else {
 		$name_part = $parts[1];
 	    }
-	    $this->dispatchToMapping($this->mappings['/' . $name_part]);
+	    $this->dispatchToMapping($this->mappings['/' . $name_part], $name_part);
 	}
     }
     
-    function dispatchToMapping($mapping) {
-	if ($mapping !== NULL) {
-	    $this->doInclude($mapping);
+    function dispatchToMapping($mapping, $name_part) {
+	if ($mapping !== NULL && $this->doInclude($mapping)) {
 	    return;
 	}
 	
 	header('HTTP/1.0 404 Not Found');
+
+	global $model;
+	$model = array('requested_resource' => $name_part);
+	$this->doInclude('404.php');
+	
 	exit;
     }
     
@@ -44,7 +48,12 @@ class Dispatcher {
     }
     
     function doInclude($name) {
-	include $this->includeDir . '/' . $name;
+	$path = $this->includeDir . '/' . $name;
+	if (!file_exists($path)) {
+	    return FALSE;
+	}
+	include $path;
+	return TRUE;
     }
     
 }
