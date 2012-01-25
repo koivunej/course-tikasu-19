@@ -14,7 +14,7 @@ $CFG["mappings"]["/home"] = 'home.php'; // also the root
 $CFG["mappings"]["/login"] = "login.php";
 $CFG["mappings"]["/logout"] = "logout.php";
 $CFG["mappings"]["/unauthorized"] = "unauthorized.php";
-$CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
+$CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__))
 
 // php autoload magic
 
@@ -26,6 +26,8 @@ function __autoload($class_name) {
     
     include $CFG["dirs"]["libs"] . $class_name . ".php";
 }
+
+// converts a "mapping" to full absolute url
 
 function link_to_url($name) {
     global $CFG;
@@ -41,6 +43,8 @@ function link_to_url($name) {
     return $CFG['site'] . '/index.php' . $name;
 }
 
+// inserts location header
+
 function redirect($name, $doFlush = TRUE) {
     global $CFG;
     $file = '';
@@ -55,22 +59,32 @@ function redirect($name, $doFlush = TRUE) {
     }
 }
 
+// inserts location header and exits
+
 function redirect_and_exit($url) {
     redirect($url, TRUE);
     exit;
 }
 
+// redirects to unauhtorized page
+
 function redirect_to_unauthorized() {
     redirect_and_exit('/unauthorized');
 }
+
+// renders the top half of the site page
 
 function render_template_begin($model) {
     __render_template($model, 'site_header.php');
 }
 
+// renders the bottom half of the site page
+
 function render_template_end($model) {
     __render_template($model, 'site_footer.php');
 }
+
+// internal rendering helper
 
 function __render_template($model, $name) {
     if (!isset($model) || $model == NULL) {
@@ -82,7 +96,6 @@ function __render_template($model, $name) {
 
 
 UserDetailsContext::attach();
-
 
 $fc = new Dispatcher();
 $fc->setMappings($CFG["mappings"]);
