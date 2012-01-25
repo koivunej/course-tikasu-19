@@ -6,6 +6,8 @@ class DatabaseConnection {
     
     function __construct($uri, $username, $password) {
 	
+	
+	
 	// open connection
 	
     }
