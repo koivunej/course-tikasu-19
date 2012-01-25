@@ -1,8 +1,6 @@
-<html>
-	<head>
-		<title>home</title>
-	</head>
-	<body>
-		<h1>home</h1>
-	</body>
-</html>
+<?php
+
+$model = array('title' => 'home');
+
+include 'site_header.php';
+include 'site_footer.php';
