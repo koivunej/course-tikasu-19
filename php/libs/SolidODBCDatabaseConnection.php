@@ -6,7 +6,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     function __construct($uri, $username, $password) {
 	
-	putenv('ODBCINI=' . basename(dirname(__FILE__)) . '/odbc.ini');
+	putenv('ODBCINI=' . dirname(dirname(__FILE__)) . '/odbc.ini');
 	
 	$this->handle = odbc_connect($uri, $username, $password);
 	
@@ -44,6 +44,60 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     function doCommitTransaction() {
 	odbc_commit($this->handle);
 	check_odbc_error("Commit");
+    }
+    
+    function query($sql, $args = array()) {
+	
+	$results = FALSE;
+	
+	if (count($args) > 0) {
+	    $ps = odbc_prepare($this->handle, $sql);
+	    if (!$ps) {
+		throw new DataAccessException("Failed to prepare statement: " . $sql);
+	    }
+	    
+	    if (odbc_execute($ps, $args) == FALSE) {
+		$results = FALSE;
+	    } else {
+		$results = $ps;
+	    }
+	} else {
+	    $results = odbc_exec($this->handle, $sql);
+	}
+	
+	$rows = array();
+	
+	if (!$results) {
+	    throw new DataAccessException("Failed to execute query:" . odbc_errormsg());
+	}
+	
+	$i = 0;
+	while (odbc_fetch_row($results)) {
+	    $rows[$i] = $this->fetchrow($results, true);
+	    $i++;
+	}
+	
+	return $rows;
+    }
+    
+    function fetchRow($result, $all = false) {
+	$row = array();
+	
+	if (!$result) {
+	    return $row;
+	}
+	
+	if (!$all && !odbc_fetch_row($result)) {
+	    return $row;
+	}
+	
+	$numfields = odbc_num_fields($result);
+	for ($i = 1; $i <= $numfields; $i++) {
+	    $col = strtolower(odbc_field_name($result, $i));
+	    $row[$col] = odbc_result($result, $i);
+	}
+	
+	return $row;
     }
     
 }
