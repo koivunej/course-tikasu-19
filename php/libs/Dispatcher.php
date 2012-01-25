@@ -14,7 +14,7 @@ class Dispatcher {
 	} else {
 	    $parts = explode("/", $path_info, 3);
 	    $name_part = NULL;
-	    if (count($parts) < 3) {
+	    if (count($parts) < 2) {
 		$name_part = 'home';
 	    } else {
 		$name_part = $parts[1];
