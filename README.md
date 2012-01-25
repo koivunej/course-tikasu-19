@@ -21,7 +21,7 @@ setup
 structuring
 ===========
 
-./*/Makefile
+./Makefile & ./database/Makefile
 ----------
 
 i think we should put all our "common tasks" into Makefiles, like: 
@@ -40,7 +40,7 @@ i think we should put all our "common tasks" into Makefiles, like:
 
 lets put our solids sql et al here.
 
-./app
+./php
 ----------
 
 lets put our php app here.
