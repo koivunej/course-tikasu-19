@@ -10,13 +10,13 @@ class UserDetailsService {
     }
     
     function authenticate($username, $password) {
-	$db = $this->context->getDatabaseConnection();
+	$db = $this->context->db;
 	
 	$tx = $db->beginTransaction();
 	
 	try {
 	    $results = $db->query('SELECT * FROM users WHERE username = ? AND password = ?',
-				  array($username, hash($password, salt($username))));
+				  array($username, $this->hash($password, $this->salt($username))));
 
 	    if (count($results) == 0) {
 		throw new BadCredentialsException();
@@ -24,16 +24,19 @@ class UserDetailsService {
 	    
 	    $result = new UserDetails();
 	    
-	    $db->hydrate($results[0], $result, array('roles'));
+	    $db->hydrate($result, $results[0], array('roles'));
 	    
 	    $roles = $db->query('SELECT name FROM roles r JOIN users_roles ur ON (ur.role_id = r.id) WHERE ur.user_id = ?',
 				array($result->id));
 	    
-	    $result->roles = $roles;
+	    foreach ($roles as $row) {
+		$result->roles[$row['name']] = $row['name'];
+	    }
 	    
 	    return $result;
-	} finally {
+	} catch (Exception $e) {
 	    $tx->commit();
+	    throw $e;
 	}
     }
 
