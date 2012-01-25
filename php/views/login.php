@@ -20,9 +20,9 @@ class FakeUserDetailsService {
 
 function handle_post($model, $context) {
     
-    //$users = $context->getUserDetailsService();
+    $users = $context->userDetailsService;
     
-    $users = new FakeUserDetailsService();
+    //$users = new FakeUserDetailsService();
     
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -44,12 +44,14 @@ function handle_post($model, $context) {
     die('Internal error'); // shouldn't get here
 }
 
+global $context;
+
 $model = array();
 $model['title'] = 'login';
 $model['username'] = '';
 
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-    $model = handle_post($model, NULL);
+    $model = handle_post($model, $context);
 }
 
 render_template_begin($model);

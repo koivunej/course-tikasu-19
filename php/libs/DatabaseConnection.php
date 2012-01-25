@@ -35,14 +35,17 @@ class DatabaseConnection {
     
     function doInTransaction($function_name) {
 	$tx = $this->beginTransaction();
-	
+	$throwLater = NULL;
 	try {
 	    return call_user_func($function_name);
 	} catch (Exception $e) {
 	    $tx->setRollbackOnly();
-	    throw $e;
-	} finally {
-	    $tx->commit();
+	    $throwLater = $e;
+	}
+	
+	$tx->commit();
+	if ($throwLater != NULL) {
+	    throw $throwLater;
 	}
     }
     
@@ -80,12 +83,16 @@ class DatabaseConnection {
     // populate instance from the row
     function hydrate($instance, $row, $ignored = array()) {
 	
+/*	$instance->id = $row["id"];
+	$instance->username = $row["username"];
+	$instance->password = $row["password"];*/
+	
 	foreach ($row as $column => $value) {
-	    if (!property_exists($instance, $column) && !in_array($column, $ignored)) {
-		die("property [" . $column . "] could not be found from the entity: ". $instance);
+	    if (!property_exists(get_class($instance), $column) && !in_array($column, $ignored)) {
+		die("property [" . $column . "] could not be found from the entity: ". get_class($instance));
 	    }
-	    
-	    $instance->__set($column, $value);
+	 
+	    $instance->$column = $value;
 	}
 	
     }
