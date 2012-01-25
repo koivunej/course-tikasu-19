@@ -2,5 +2,5 @@
 
 $model = array('title' => 'home');
 
-include 'site_header.php';
-include 'site_footer.php';
+render_template_begin($model);
+render_template_end($model);

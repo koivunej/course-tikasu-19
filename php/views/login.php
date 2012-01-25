@@ -32,7 +32,7 @@ if ( $_METHOD = 'POST' ) {
     handle_post($model, $context);
 }
 
-include 'site_header.php';
+render_template_begin($model);
 ?>
 
 <h1>login</h1>
@@ -56,4 +56,4 @@ if (isset($model['errors']) && count($model['errors']) > 0) {
 </form>
 
 <?php
-include 'site_footer.php';
+render_template_end($model);

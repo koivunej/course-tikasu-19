@@ -40,6 +40,23 @@ function redirect($url, $doFlush = TRUE) {
     }
 }
 
+function render_template_begin($model) {
+    __render_template($model, 'site_header.php');
+}
+
+function render_template_end($model) {
+    __render_template($model, 'site_footer.php');
+}
+
+function __render_template($model, $name) {
+    if (!isset($model) || $model == NULL) {
+	die('null $model');
+    }
+    global $CFG;
+    include $CFG['dirs']['views'] . '/' . $name;
+}
+
+
 $fc = new Dispatcher();
 $fc->setMappings($CFG["mappings"]);
 $fc->setImplementationDir($CFG["dirs"]["views"]);
