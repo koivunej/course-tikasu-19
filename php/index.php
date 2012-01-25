@@ -6,10 +6,11 @@
 
 $CFG = array("main configuration map");
 
-$CFG["dirs"]["libs"] = dirname(__FILE__) + "/" + "libs/";
-$CFG["dirs"]["views"] = dirname(__FILE__) + "/" + "views/";
+$CFG["dirs"]["libs"] = dirname(__FILE__) . "/" . "libs/";
+$CFG["dirs"]["views"] = dirname(__FILE__) . "/" . "views/";
 
 // mapping definitions; each file is in views dir defined above
+$CFG["mappings"]["/home"] = 'home.php'; // also the root
 $CFG["mappings"]["/login"] = "login.php";
 $CFG["mappings"]["/logout"] = "logout.php";
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
@@ -18,7 +19,11 @@ $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(
 
 function __autoload($class_name) {
     global $CFG;
-    include $CFG["dirs"]["libs"] + $class_name + ".php";
+    if (!isset($CFG) || $CFG == NULL) {
+	die("No CFG var for loading class" . $class_name);
+    }
+    
+    include $CFG["dirs"]["libs"] . $class_name . ".php";
 }
 
 function redirect($url, $doFlush = TRUE) {

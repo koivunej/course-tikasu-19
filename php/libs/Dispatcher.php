@@ -4,19 +4,26 @@ class Dispatcher {
     
     var $mappings;
     var $includeDir;
-    
+
     function dispatch() {
-	$path_info = $_SERVER['PATH_INFO'];
 	
+	$path_info = (array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : NULL);
+
 	if ($path_info === NULL || strlen($path_info) == 0) {
-	    $this->dispatch($this->mappings['/home']);
+	    $this->dispatchToMapping($this->mappings['/home']);
 	} else {
 	    $parts = explode("/", $path_info, 3);
-	    $this->dispatch($this->mappings['/' + parts[1]]);
+	    $name_part = NULL;
+	    if (count($parts) < 3) {
+		$name_part = 'home';
+	    } else {
+		$name_part = $parts[1];
+	    }
+	    $this->dispatchToMapping($this->mappings['/' . $name_part]);
 	}
     }
     
-    function dispatch($mapping) {
+    function dispatchToMapping($mapping) {
 	if ($mapping !== NULL) {
 	    $this->doInclude($mapping);
 	    return;
