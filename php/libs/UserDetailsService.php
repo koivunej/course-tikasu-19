@@ -51,5 +51,9 @@ class UserDetailsService {
     function hash($password, $salt = '') {
 	return hash('sha512', $password . $salt);
     }
+    
+    static function createUserDetailsService($context) {
+	return new UserDetailsService($context);	
+    }
 	
 }
