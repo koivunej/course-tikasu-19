@@ -81,8 +81,12 @@ function __render_template($model, $name) {
 }
 
 
+UserDetailsContext::attach();
+
+
 $fc = new Dispatcher();
 $fc->setMappings($CFG["mappings"]);
 $fc->setImplementationDir($CFG["dirs"]["views"]);
 $fc->dispatch();
 
+UserDetailsContext::detach();
