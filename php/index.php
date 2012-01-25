@@ -13,6 +13,7 @@ $CFG["dirs"]["views"] = dirname(__FILE__) . "/" . "views/";
 $CFG["mappings"]["/home"] = 'home.php'; // also the root
 $CFG["mappings"]["/login"] = "login.php";
 $CFG["mappings"]["/logout"] = "logout.php";
+$CFG["mappings"]["/unauthorized"] = "unauthorized.php";
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
 
 // php autoload magic
@@ -26,7 +27,21 @@ function __autoload($class_name) {
     include $CFG["dirs"]["libs"] . $class_name . ".php";
 }
 
-function redirect($url, $doFlush = TRUE) {
+function link_to_url($name) {
+    global $CFG;
+    
+    if ($name[0] != '/') {
+	$name = '/' . $name;
+    }
+    
+    if ($name == '/') {
+	$name = '/home';
+    }
+    
+    return $CFG['site'] . '/index.php' . $name;
+}
+
+function redirect($name, $doFlush = TRUE) {
     global $CFG;
     $file = '';
     $line = '';
@@ -34,10 +49,19 @@ function redirect($url, $doFlush = TRUE) {
 	die('Headers were already sent at ' . $file . ':' . $line);
     }
     
-    header('Location: ' . $CFG['site'] . $url);
+    header('Location: ' . link_to_url($name));
     if ($doFlush) {
 	flush();
     }
+}
+
+function redirect_and_exit($url) {
+    redirect($url, TRUE);
+    exit;
+}
+
+function redirect_to_unauthorized() {
+    redirect_and_exit('/unauthorized');
 }
 
 function render_template_begin($model) {
@@ -61,3 +85,4 @@ $fc = new Dispatcher();
 $fc->setMappings($CFG["mappings"]);
 $fc->setImplementationDir($CFG["dirs"]["views"]);
 $fc->dispatch();
+

@@ -10,7 +10,9 @@ class Dispatcher {
 	$path_info = (array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : NULL);
 
 	if ($path_info === NULL || strlen($path_info) == 0) {
-	    $this->dispatchToMapping($this->mappings['/home']);
+	    
+	    redirect_and_exit('/');
+	    
 	} else {
 	    $parts = explode("/", $path_info, 3);
 	    $name_part = NULL;
