@@ -15,6 +15,10 @@ $CFG["mappings"]["/home"] = 'home.php'; // also the root
 $CFG["mappings"]["/login"] = "login.php";
 $CFG["mappings"]["/logout"] = "logout.php";
 $CFG["mappings"]["/unauthorized"] = "unauthorized.php";
+$CFG["mappings"]["/invoices"] = "@/invoices/list";
+$CFG["mappings"]["/invoices/list"] = "invoices/list.php";
+$CFG["mappings"]["/invoices/add"] = "invoices/add.php";
+
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
 
 // php class autoload magic
