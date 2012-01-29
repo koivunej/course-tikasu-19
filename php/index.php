@@ -39,6 +39,7 @@ include 'site_templating.php';
 
 //
 // putting it all together
+// factories below are function pointers
 // 
 
 $context = new Context();
@@ -46,6 +47,8 @@ $context->setFactory("db",
 		     "CourseDatabaseFactory::createDatabaseConnection");
 $context->setFactory("userDetailsService", 
 		     "UserDetailsService::createUserDetailsService");
+$context->setFactory("invoiceService",
+		     "InvoiceService::createInvoiceService");
 
 // userDetailsContext provides session management + security
 UserDetailsContext::attach();
