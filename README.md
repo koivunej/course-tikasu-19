@@ -17,6 +17,7 @@ setup
  4. clone this repo
  5. push something, anything, like your name below:
    * joonas
+   * oiva
 
 structuring
 ===========
