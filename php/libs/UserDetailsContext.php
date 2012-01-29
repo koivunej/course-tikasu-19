@@ -55,6 +55,10 @@ class UserDetailsContext {
 	return (session_id() !== "") && (array_key_exists('udc.userdetails', $_SESSION));
     }
     
+    static function isNotAuthenticated() {
+	return !UserDetailsContext::isAuthenticated();
+    }
+    
     static function assertAuthenticated() {
 	if (!isAuthenticated()) {
 	    redirect_to_unauthorized();

@@ -11,13 +11,13 @@ $CFG["dirs"]["views"] = dirname(__FILE__) . "/" . "views/";
 
 // mapping definitions; each file is in views dir defined above
 
-$CFG["mappings"]["/home"] = 'home.php'; // also the root
-$CFG["mappings"]["/login"] = "login.php";
-$CFG["mappings"]["/logout"] = "logout.php";
-$CFG["mappings"]["/unauthorized"] = "unauthorized.php";
-$CFG["mappings"]["/invoices"] = "@/invoices/list";
-$CFG["mappings"]["/invoices/list"] = "invoices/list.php";
-$CFG["mappings"]["/invoices/add"] = "invoices/add.php";
+$CFG["mappings"]["/home"] = array('handler' => 'home.php', 'name' => 'homepage'); // also the root
+$CFG["mappings"]["/login"] = array('handler' => "login.php", 'hidden' => 'UserDetailsContext::isAuthenticated');
+$CFG["mappings"]["/logout"] = array('handler' => "logout.php", 'hidden' => 'UserDetailsContext::isNotAuthenticated');
+$CFG["mappings"]["/unauthorized"] = array('handler' => "unauthorized.php", 'hidden' => TRUE);
+$CFG["mappings"]["/invoices"] = array('handler' => "@/invoices/list", 'name' => 'Invoices', 'hidden' => TRUE);
+$CFG["mappings"]["/invoices/list"] = array('handler' => "invoices/list.php", 'name' => 'List all invoices', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
+$CFG["mappings"]["/invoices/add"] = array('handler' => "invoices/add.php", 'name' => 'Add an invoice', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
 
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
 
