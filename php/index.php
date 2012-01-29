@@ -17,7 +17,9 @@ $CFG["mappings"]["/logout"] = array('handler' => "logout.php", 'name' => 'Log ou
 $CFG["mappings"]["/unauthorized"] = array('handler' => "unauthorized.php", 'hidden' => TRUE);
 $CFG["mappings"]["/invoices"] = array('handler' => "@/invoices/list", 'name' => 'Invoices', 'hidden' => TRUE);
 $CFG["mappings"]["/invoices/list"] = array('handler' => "invoices/list.php", 'name' => 'List all invoices', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
-$CFG["mappings"]["/invoices/add"] = array('handler' => "invoices/add.php", 'name' => 'Add an invoice', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
+$CFG["mappings"]["/invoices/add"] = array('handler' => "invoices/edit.php", 'name' => 'Add an invoice', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
+$CFG["mappings"]["/invoices/view"] = array('handler' => 'invoices/view.php', 'hidden' => TRUE);
+$CFG["mappings"]["/invoices/edit"] = array('handler' => 'invioces/edit.php', 'hidden' => TRUE);
 
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
 
