@@ -37,6 +37,14 @@ class Dispatcher {
     }
     
     function dispatchToMapping($mapping, $name_part) {
+	
+	if (is_array($mapping)) {
+	    if (!array_key_exists("handler", $mapping)) {
+		die("no url for mapping " . var_dump($mapping));
+	    }
+	    $mapping = $mapping["handler"];
+	}
+	
 	if ($mapping !== NULL) {
 	    if (substr($mapping, 0, 1) == '@') {
 		return redirect_and_exit(substr($mapping, 1));
