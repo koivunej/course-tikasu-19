@@ -2,22 +2,6 @@
 
 /* simple login controller + view */
 
-class FakeUserDetailsService {
-    
-    function authenticate($username, $password) {
-	if ($username == 'erkki' && $password == 'erkki') {
-	    $userDetails = new UserDetails();
-	    $userDetails->id = 2;
-	    $userDetails->username = 'erkki';
-	    $userDetails->password = '********';
-	    return $userDetails;
-	}
-	
-	throw new BadCredentialsException();
-    }
-    
-}
-
 function handle_post($model, $context) {
     
     $users = $context->userDetailsService;
