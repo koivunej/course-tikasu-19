@@ -23,6 +23,77 @@ function link_to_url($name) {
     return $CFG['site'] . '/index.php' . $name;
 }
 
+function echo_link($uri_part, $text='') {
+    echo '<a href="' . link_to_url($uri_part) . '">' . (strlen($text) > 0 ? $text : $uri_part) . '</a>';
+}
+
+class NaviItem {
+    
+    var $uri_part;
+    var $name;
+    var $children;
+    var $hidden;
+    
+    function __construct($uri_part, $name, $hidden = FALSE) {
+	$this->uri_part = $uri_part;
+	$this->name = $name;
+	$this->children = array();
+	$this->hidden = $hidden;
+    }
+    
+    function add($naviItem) {
+	$this->children[$naviItem->uri_part] = $naviItem;
+    }
+    
+    function isHidden() {
+	if (!is_bool($this->hidden)) {	
+	    if (is_callable($this->hidden)) {
+		return call_user_func($this->hidden);
+	    }
+	    return TRUE;
+	}
+	return $this->hidden;
+    }
+    
+    function render() {
+	
+	$hidden = $this->isHidden();
+	
+	if ($hidden == TRUE) {
+	    $abort = TRUE;
+	    foreach ($this->children as $child) {
+		if (!$child->isHidden()) {
+		    $abort = FALSE;
+		    break;
+		}
+	    }
+	    if ($abort) {
+		return;
+	    }
+	}
+	
+	echo '<li>';
+	
+	if ($hidden == TRUE) {
+	    echo $this->name;
+	} else {
+	    echo_link($this->uri_part, $this->name);
+	}
+	
+	if (count($this->children) > 0) {
+	    echo '<ul>';
+	    foreach ($this->children as $uri_part => $item) {
+		$item->render();
+	    }
+	    echo '</ul>';
+	}
+	
+	echo '</li>';
+    }
+    
+}
+
+
 // inserts location header
 
 function redirect($name, $doFlush = TRUE) {
@@ -43,10 +114,7 @@ function redirect($name, $doFlush = TRUE) {
 
 function redirect_and_exit($url) {
     redirect($url, TRUE);
-    // TODO: this is bad; better would be to throw an 
-    // ResponseRedirectedException or something like that which only the
-    // index.php would catch.. also a ForwardToMappingException would be nice.
-    exit;
+    throw new ResponseRedirectedException($url);
 }
 
 // redirects to unauhtorized page

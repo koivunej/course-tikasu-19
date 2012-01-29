@@ -56,7 +56,22 @@ UserDetailsContext::attach();
 $fc = new Dispatcher();
 $fc->setMappings($CFG["mappings"]);
 $fc->setImplementationDir($CFG["dirs"]["views"]);
-$fc->dispatch();
+
+try {
+    
+    ob_start();
+    $fc->dispatch();
+    ob_end_flush();
+    
+} catch (ResponseRedirectedException $e) {
+    // safe to ignore; make sure nothing else is sent but the header
+    ob_end_clean();
+} catch (Exception $e) {
+    // unknown exception
+    ob_end_clean();
+    $model = array("exception" => $e);
+    include $CFG["dirs"]["views"] . "internalError.php";
+}
 
 // here udc will destroy any non-authenticated session
 UserDetailsContext::detach();
