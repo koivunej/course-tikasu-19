@@ -18,6 +18,7 @@ setup
  5. push something, anything, like your name below:
    * joonas
    * oiva
+   * matti
 
 structuring
 ===========
