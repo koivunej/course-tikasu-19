@@ -21,6 +21,14 @@ render_template_begin($model);
 <h2>report</h2>
 	
 <!-- for simple key: value data use dl -->
-		
+
+<h2>actions</h2>
+	
+<ul>
+<li><?php echo_link('/invoices/edit?id=123', 'Edit invoice');?></li>
+<li><?php echo_link('/invoices/send?id=123', 'Send invoice');?></li>
+<li><?php echo_link('/invoices/delete?id=123', 'Delete invoice');?></li>
+</ul>
+
 <?php
 render_template_end($model);
