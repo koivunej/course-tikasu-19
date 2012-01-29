@@ -6,8 +6,6 @@ function handle_post($model, $context) {
     
     $users = $context->userDetailsService;
     
-    //$users = new FakeUserDetailsService();
-    
     $username = $_POST['username'];
     $password = $_POST['password'];
 
@@ -31,7 +29,7 @@ function handle_post($model, $context) {
 global $context;
 
 $model = array();
-$model['title'] = 'login';
+$model['title'] = 'authenticate';
 $model['username'] = '';
 
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
@@ -42,6 +40,7 @@ render_template_begin($model);
 ?>
 
 <?php
+// TODO: this ought to be refactored to more general place
 if (isset($model['errors']) && count($model['errors']) > 0) {
     echo '<ul class="errors">';
     

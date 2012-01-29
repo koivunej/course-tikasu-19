@@ -11,9 +11,9 @@ $CFG["dirs"]["views"] = dirname(__FILE__) . "/" . "views/";
 
 // mapping definitions; each file is in views dir defined above
 
-$CFG["mappings"]["/home"] = array('handler' => 'home.php', 'name' => 'homepage'); // also the root
-$CFG["mappings"]["/login"] = array('handler' => "login.php", 'hidden' => 'UserDetailsContext::isAuthenticated');
-$CFG["mappings"]["/logout"] = array('handler' => "logout.php", 'hidden' => 'UserDetailsContext::isNotAuthenticated');
+$CFG["mappings"]["/home"] = array('handler' => 'home.php', 'name' => 'Homepage'); // also the root
+$CFG["mappings"]["/login"] = array('handler' => "login.php", 'name' => 'Authenticate', 'hidden' => 'UserDetailsContext::isAuthenticated');
+$CFG["mappings"]["/logout"] = array('handler' => "logout.php", 'name' => 'Log out', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
 $CFG["mappings"]["/unauthorized"] = array('handler' => "unauthorized.php", 'hidden' => TRUE);
 $CFG["mappings"]["/invoices"] = array('handler' => "@/invoices/list", 'name' => 'Invoices', 'hidden' => TRUE);
 $CFG["mappings"]["/invoices/list"] = array('handler' => "invoices/list.php", 'name' => 'List all invoices', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
