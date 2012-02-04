@@ -33,17 +33,17 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	    throw new TransactionException("Failed to disable autocommit; transaction startup failed");
 	}
 	odbc_exec($this->handle, "SET TRANSACTION ISOLATION LEVEL READ COMMITED");
-	check_odbc_error("Start transaction (set transaction isolation level)");
+	$this->check_odbc_error("Start transaction (set transaction isolation level)");
     }
     
     function doRollbackTransaction() {
 	odbc_rollback($this->handle);
-	check_odbc_error("Rollback");
+	$this->check_odbc_error("Rollback");
     }
     
     function doCommitTransaction() {
 	odbc_commit($this->handle);
-	//check_odbc_error("Commit");
+	$this->check_odbc_error("Commit");
     }
     
     function query($sql, $args = array()) {
@@ -68,7 +68,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	$rows = array();
 	
 	if (!$results) {
-	    throw new DataAccessException("Failed to execute query:" . odbc_errormsg());
+	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
 	}
 	
 	$i = 0;
