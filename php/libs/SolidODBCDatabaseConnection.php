@@ -38,7 +38,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     function doRollbackTransaction() {
 	odbc_rollback($this->handle);
-	check_odbc_error("Rollback");
+	$this->check_odbc_error("Rollback");
     }
     
     function doCommitTransaction() {
@@ -68,7 +68,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	$rows = array();
 	
 	if (!$results) {
-	    throw new DataAccessException("Failed to execute query:" . odbc_errormsg());
+	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
 	}
 	
 	$i = 0;
