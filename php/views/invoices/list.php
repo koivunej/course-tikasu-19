@@ -27,7 +27,6 @@ global $context;
 
 $conn_id = $context->db;
 
-
 //making the query
 $query = "SELECT reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
   AND campaigns.adv_vat = advertisers.VAT";
@@ -36,8 +35,6 @@ $conn_id->doBeginTransaction();
 
 //gerring necessary rows
 $rows = $conn_id->query ($query);
-
-$conn_id->doCommitTransaction();
 
 foreach ($rows as $iter) {
     echo "<tbody>";

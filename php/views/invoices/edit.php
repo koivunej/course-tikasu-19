@@ -29,11 +29,42 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 
 render_template_begin($model);
 ?>
-
-<form method="post">
 	
-	<input type="submit" value="<?php if ($is_editing) { echo "Save"; } else { echo "Create"; } ?>"/>
+<form method="post">
+<table border = "1">
+	<thead>
+		<tr>
+			<td> Name </td>
+			<td> Start date </td>
+			<td> End date </td>
+		</tr>
+	</thead>
+<?php
+
+//opening connection to database                                                                                                                              
+global $context;                                                                                                                                              
+                                                                                                                                                              
+$conn_id = $context->db;
+
+$query = "SELECT name, starts_at, ends_at FROM campaigns, invoices WHERE NOT (invoices.campaign_id = campaigns.id) AND campaigns.active = 'F'";
+	
+$conn_id->doBeginTransaction();                                                                                                                               
+                                                                                                                                                              
+//gerring necessary rows                                                                                                                                      
+$rows = $conn_id->query ($query);
+
+foreach ($rows as $iter) {
+    echo "<tbody>";
+    echo "<tr>";
+    echo "<td>".$iter["name"]."</td>";
+    echo "<td>".$iter["starts_at"]."</td>";
+    echo "<td>".$iter["ends_at"]."</td>";
+    echo "<td><input type=\"submit\" value=\"Create\"></td>";
+    echo "</tr>";
+}
+?>
 </form>
+      
 	
 <?php
 render_template_end($model);
