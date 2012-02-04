@@ -24,8 +24,6 @@ class Invoice {
 }
 
 function handle_post($model, $context) {
-    $is_editing = TRUE;
-    $model["obj"]->id = $_POST["edit"];
     // service discovery through $context
     // service call
     // redirection to view page -- redirect_and_exit("/invoices/view?id=" . $inserted_id)
@@ -49,8 +47,15 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
     $model = handle_post($model, $context);
 }
 
+if ( $_SERVER["REQUEST_METHOD"] == "GET") {
+    if ($_GET) {
+	$is_editing = TRUE;
+	$model["obj"]->id = $_GET["id"];
+    }
+}
+
 render_template_begin($model);
-	
+
 if (!$is_editing) {
 
     echo "<form method=\"post\">";
@@ -92,15 +97,29 @@ else {
     //connection to database
     $conn_id = $context->db;
     
-    $query = "SELECT DISTINCT * FROM campaigns WHERE id = '".$model["obj"]->id."'";
+    $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE campaign_id = ".$model["obj"]->id;
     
     $conn_id->beginTransaction();
     
     $row = $conn_id->query ($query);
     
     echo "<form method = \"post\">";
-    echo "<tr><td> Id: </td>";
-    echo "<td>".$row["id"]."<td></tr>";
+    foreach ($row as $iter) {
+	echo "<tr><td> Id: </td>";
+	echo "<td>".$iter["id"]."</td></tr><br>";
+	echo "<tr><td> Due date: </td>";
+	echo "<td><input type=\"text\" value = \"".$iter["due_at"]."\"</td></tr><br>";
+	echo "<tr><td> Reference number: </td>";
+	echo "<td>".$iter["reference_number"]."</td></tr><br>";
+	echo "<tr><td> Late fee: </td>";
+	echo "<td><input type=\"text\" value = \"".$iter["late_fee"]."\"</td></tr><br>";
+	echo "<tr><td> Sent: </td>";
+	echo "<td>".$iter["sent"]."</td></tr><br>";
+	echo "<tr><td> Campaign number: </td>";
+	echo "<td>".$iter["campaign_id"]."</td></tr><br>";
+	echo "<tr><td> Previous invoice: </td>";
+	echo "<td>".$iter["previous_invoice_id"]."</td></tr><br>";
+    }
     echo "</form>";
 }
 
