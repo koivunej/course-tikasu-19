@@ -1,6 +1,6 @@
 <?php
 
-class DatabaseConnection {
+abstract class DatabaseConnection {
     
     var $currentTx;
     
@@ -22,7 +22,7 @@ class DatabaseConnection {
     
     function beginTransaction() {
 	if ($this->currentTx !== NULL && !$this->currentTx->isCompleted()) {
-	    return new TransactionStatus($this, $this->currentTransaction);
+	    return new TransactionStatus($this, $this->currentTx);
 	}
 	
 	$this->currentTx = new TransactionStatus($this);
@@ -31,6 +31,12 @@ class DatabaseConnection {
     
     function getTransaction() {
 	return $this->currentTx;
+    }
+    
+    function assertInTransaction() {
+	if ($this->currentTx == NULL || $this->currentTx->isCompleted()) {
+	    throw new Exception("Assertion failed: not in transaction");
+	}
     }
     
     function doInTransaction($function_name) {
@@ -50,21 +56,17 @@ class DatabaseConnection {
     }
     
     function actualBeginTransaction($tx) {
-	doStartTransaction();
+	$this->doBeginTransaction();
 	$tx->setBegan();
     }
     
-    function doBeginTransaction() {
-	// BEGIN WORK
-    }
+    abstract protected function doBeginTransaction();
     
-    function doRollbackTransaction() {
-	// ROLLBACK
-    }
+    abstract protected function doRollbackTransaction();
     
-    function doCommitTransaction() {
-	// COMMIT
-    }
+    abstract protected function doCommitTransaction();
+    
+    abstract public function query($sql, $args = array());
     
     function actualCompleteTransaction($tx) {
 	if (!$tx->hasBegan()) {
@@ -72,9 +74,9 @@ class DatabaseConnection {
 	}
 	
 	if ($tx->isRollbackOnly()) {
-	    doRollbackTransaction();
+	    $this->doRollbackTransaction();
 	} else {
-	    doCommitTransaction();
+	    $this->doCommitTransaction();
 	}
 	
 	$tx->setCompleted();
