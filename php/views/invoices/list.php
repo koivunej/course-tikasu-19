@@ -21,18 +21,18 @@ render_template_begin($model);
 		</tr>
     	</thead>
 <?php
-//getting user information to access database
-$host = "tcp aapiskukko.cs.tut.fi 44190";
-$user = "musaadmin";
-$pass= "'musaadmin'";
-
 
 //opening connection to database
-$conn_id = new SolidODBCDatabaseConnection($host, $user, $pass);
+global $context;
+
+$conn_id = $context->db;
+
 
 //making the query
 $query = "SELECT reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
   AND campaigns.adv_vat = advertisers.VAT";
+
+$conn_id->doBeginTransaction();
 
 //gerring necessary rows
 $rows = $conn_id->query ($query);
