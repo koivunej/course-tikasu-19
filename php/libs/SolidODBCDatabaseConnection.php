@@ -43,7 +43,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     function doCommitTransaction() {
 	odbc_commit($this->handle);
-	check_odbc_error("Commit");
+	//check_odbc_error("Commit");
     }
     
     function query($sql, $args = array()) {

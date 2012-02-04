@@ -14,22 +14,47 @@ render_template_begin($model);
 <table border="1">
 	<thead>
 		<tr>
-			<td>col 1</td>
-			<td>col 2</td>
-			<td>col n</td>
+			<td>Invoice number</td>
+			<td>Advertiser name</td>
+			<td>Is active</td>
 			<td colspan="2">actions</td>
 		</tr>
     	</thead>
-	<tbody>
-		<tr>
-			<td>value 1</td>
-			<td>value 2</td>
-			<td>value n</td>
-			<td><?php echo_link('/invoices/view?id=123', "View"); ?></td>
-			<td><?php echo_link('/invoices/edit?id=123', 'Edit'); ?></td>
-		</tr>
-	</tbody>
-</table>
-	
 <?php
+//getting user information to access database
+$host = "tcp aapiskukko.cs.tut.fi 44190";
+$user = "musaadmin";
+$pass= "'musaadmin'";
+
+
+//opening connection to database
+$conn_id = new SolidODBCDatabaseConnection($host, $user, $pass);
+
+//making the query
+$query = "SELECT reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
+  AND campaigns.adv_vat = advertisers.VAT";
+
+//gerring necessary rows
+$rows = $conn_id->query ($query);
+
+$conn_id->doCommitTransaction();
+
+foreach ($rows as $iter) {
+    echo "<tbody>";
+      echo "<tr>";
+        echo "<td>".$iter["reference_number"]."</td>";
+        echo "<td>".$iter["name"]."</td>";
+        echo "<td><input type=\"checkbox\" name=\"".$iter["name"]."\" value=\"active\"></td>";
+        echo "<td>"; 
+        echo_link('/invoices/view?id='.$iter["reference_number"], 'View');
+        echo "</td>";
+        echo "<td>";
+        echo_link('/invoices/edit?id='.$iter["reference_number"], 'Edit');
+        echo "</td>";
+      echo "</tr>";
+    echo "</tbody>";
+}
+	
+echo "</table>";  
+
 render_template_end($model);
