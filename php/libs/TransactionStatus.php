@@ -65,12 +65,18 @@ class TransactionStatus {
     
     function assertNotCompleted() {
 	if ($this->completed == TRUE) {
-	    throw new TransactionException();
+	    throw new TransactionException("Assertion failed: transaction not completed");
 	}
     }
     
     function setCompleted() {
 	$this->completed = TRUE;
     }
-    
+
+    function isCompleted() {
+	if ($this->parent != null) {
+	    return $this->parent->isCompleted();
+	}
+	return $this->completed;
+    }
 }
