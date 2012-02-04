@@ -7,11 +7,25 @@
 //Invoice class
 
 class Invoice {
+    function __Invoice () {    
+	$due_at = "1970-01-01";
+	$ref_number = "00000";
+	$late_fee = 0;
+	$sent = "F";
+    }
     
+    public $id;
+    public $due_at;
+    public $ref_number;
+    public $late_fee;
+    public $sent;
+    public $cam_id;
+    public $prev_invoice;
 }
 
 function handle_post($model, $context) {
     $is_editing = TRUE;
+    $model["obj"]->id = $_POST["edit"];
     // service discovery through $context
     // service call
     // redirection to view page -- redirect_and_exit("/invoices/view?id=" . $inserted_id)
@@ -26,7 +40,7 @@ $model = array("title" => "add an invoice");
 // it's good idea to concentrate everything around editing this single object
 // filling the form values each time will be automatic in this case
 
-//$model["obj"] = new Invoice();
+$model["obj"] = new Invoice();
 
 // we are creating new if the id is NULL, otherwise we are editing an old
 $is_editing = FALSE; // $model["obj"]->id == NULL;
@@ -37,7 +51,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 
 render_template_begin($model);
 	
-if (!is_editing) {
+if (!$is_editing) {
 
     echo "<form method=\"post\">";
     echo "<table border = \"1\">";
@@ -78,7 +92,7 @@ else {
     //connection to database
     $conn_id = $context->db;
     
-    $query = "SELECT DISTINCT * FROM campaigns WHERE id = ".model[obj]->id;
+    $query = "SELECT DISTINCT * FROM campaigns WHERE id = '".$model["obj"]->id."'";
     
     $conn_id->beginTransaction();
     
@@ -86,7 +100,7 @@ else {
     
     echo "<form method = \"post\">";
     echo "<tr><td> Id: </td>";
-    echo "<td>".$row[id]."<td></tr>";
+    echo "<td>".$row["id"]."<td></tr>";
     echo "</form>";
 }
 
