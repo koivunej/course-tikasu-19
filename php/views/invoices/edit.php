@@ -46,10 +46,12 @@ global $context;
                                                                                                                                                               
 $conn_id = $context->db;
 
-$query = "SELECT name, starts_at, ends_at FROM campaigns, invoices WHERE NOT (invoices.campaign_id = campaigns.id) AND campaigns.active = 'F'";
+$query = "SELECT DISTINCT name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
+	   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
+  OR campaigns.active = 'T')";
 	
-$conn_id->doBeginTransaction();                                                                                                                               
-                                                                                                                                                              
+$conn_id->beginTransaction();
+
 //gerring necessary rows                                                                                                                                      
 $rows = $conn_id->query ($query);
 

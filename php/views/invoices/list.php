@@ -31,7 +31,7 @@ $conn_id = $context->db;
 $query = "SELECT reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
   AND campaigns.adv_vat = advertisers.VAT";
 
-$conn_id->doBeginTransaction();
+$conn_id->beginTransaction();
 
 //gerring necessary rows
 $rows = $conn_id->query ($query);
