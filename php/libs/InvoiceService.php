@@ -11,6 +11,10 @@ class InvoiceService {
     function getById($id) {
 	$db = $context->db;
 	
+	$tx = $db->beginTransaction();
+	$paluu = $db->query('SELECT * FROM users WHERE username = ?', array($username);
+	return $paluu;
+	$tx->commit();
 	// transaktiot jne.
     }
     
