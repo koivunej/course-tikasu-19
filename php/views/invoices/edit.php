@@ -33,19 +33,12 @@ class Invoice {
 }
 
 function handle_post($model, $context) {
-    
     //if there is something wrong in post we just redirect somewhere
     if (!is_valid_post()) {                                                                                                                             
 	redirect("/invoices/list");                                                                                                                                     
     }
     
     //now we know we have everything we need for handling post
-
-    // service discovery through $context
-    // service call
-    // redirection to view page -- redirect_and_exit("/invoices/view?id=" . $inserted_id)
-    // exception handling (in case of invalid data): 
-    
 }
 
 global $context;
@@ -140,20 +133,16 @@ if (!isset($obj)) {
 if (!$is_editing) {
 
     if (!$dun_mess && $obj->cam_id == NULL) {
-	//opening connection to database                                                                                                                                                                                                                                                                            
-    
-	$conn_id = $context->db;
+
 
 	$query = "SELECT DISTINCT campaigns.id,name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
 		   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
 		    OR campaigns.active = 'T')";
 //	$query = "select c.id, c.name, c.starts_at, c.ends_at from campaigns c join invoices i on (i.campaign_id = c.id) WHERE c.active = 'F' GROUP BY c.id 
 //		   HAVING count(i.id) = 0";
-	
-	$conn_id->beginTransaction();
-	
+       
 	//getting necessary rows                                                                                                                                      
-	$rows = $conn_id->query ($query);
+	$rows = select_invoices($query);
 	
 	//printing results
 	new_invoice_select($rows,$dun_mess);
@@ -166,15 +155,9 @@ if (!$is_editing) {
 }
 
 else {
-    //connection to database
-    $conn_id = $context->db;
-    
     $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE id = ".$obj->id;
     
-    $conn_id->beginTransaction();
-    
-    $row = $conn_id->query ($query);
-
+    $row = select_invoices($query);
     edit_invoice ($row);
 }
 
