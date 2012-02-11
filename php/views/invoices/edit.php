@@ -134,12 +134,12 @@ if (!$is_editing) {
 
     if (!$dun_mess && $obj->cam_id == NULL) {
 
-
-	$query = "SELECT DISTINCT campaigns.id,name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
-		   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
-		    OR campaigns.active = 'T')";
-//	$query = "select c.id, c.name, c.starts_at, c.ends_at from campaigns c join invoices i on (i.campaign_id = c.id) WHERE c.active = 'F' GROUP BY c.id 
-//		   HAVING count(i.id) = 0";
+//	$query = "SELECT DISTINCT campaigns.id,name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
+//		   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
+//		    OR campaigns.active = 'T')";
+	$query = "SELECT DISTINCT ca.id, ca.name, ca.starts_at, ca.ends_at FROM campaigns ca WHERE ca.id = 
+		   (SELECT c.id FROM campaigns c JOIN invoices i ON (i.campaign_id = c.id) 
+	  WHERE c.active = 'F' GROUP BY c.id HAVING count(i.id)='0')";
        
 	//getting necessary rows                                                                                                                                      
 	$rows = select_invoices($query);
@@ -154,12 +154,12 @@ if (!$is_editing) {
     }	
 }
 
+//we are editing now
 else {
     $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE id = ".$obj->id;
     
     $row = select_invoices($query);
     edit_invoice ($row);
 }
-
 
 render_template_end($model);
