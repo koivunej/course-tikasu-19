@@ -181,29 +181,31 @@ else {
     
     //editing invoice
     echo "<form method = \"post\" action=\"edit\">";
+    echo "<table>";
+    
     foreach ($row as $iter) {
-	echo "<table>";
 	echo "<tr><td> Id: </td>";
-	echo "<td>".$iter["id"]."</td></tr><br>";
+	echo "<td>".$iter["id"]."</td></tr>";
 	echo "<tr><td> Due date: </td>";
-	echo "<td><input type=\"text\" value = \"".$iter["due_at"]."\" id=\"due_at\" name=\"due_at\"></td></tr><br>";
+	echo "<td><input type=\"text\" value = \"".$iter["due_at"]."\" id=\"due_at\" name=\"due_at\"></td></tr>";
 	echo "<tr><td> Reference number: </td>";
-	echo "<td><input type=\"text\" value = \"".$iter["reference_number"]."\" id=\"ref_num\" name=\"ref_num\"></td></tr><br>";
+	echo "<td><input type=\"text\" value = \"".$iter["reference_number"]."\" id=\"ref_num\" name=\"ref_num\"></td></tr>";
 	echo "<tr><td> Late fee: </td>";
-	echo "<td>".$iter["late_fee"]."</td></tr><br>";
+	echo "<td>".$iter["late_fee"]."</td></tr>";
 	echo "<tr><td> Sent: </td>";
-	echo "<td>".$iter["sent"]."</td></tr><br>";
+	echo "<td>".$iter["sent"]."</td></tr>";
 	echo "<tr><td> Campaign number: </td>";
-	echo "<td>".$iter["campaign_id"]."</td></tr><br>";
+	echo "<td>".$iter["campaign_id"]."</td></tr>";
 	echo "<tr><td> Previous invoice: </td>";
-	echo "<td>".$iter["previous_invoice_id"]."</td></tr><br>";
-	echo "</table>";
+	echo "<td>".$iter["previous_invoice_id"]."</td></tr>";
 	//making fake value send edit to post handle
 	echo  "<input type=\"hidden\" value=\"edit\" id=\"sent\" name=\"sent\">";
 	//also sending necesary id so we can easily edit in the database
 	echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"id\" name=\"id\">";
-	echo "<input type=\"submit\" value=\"Save\">";
     }
+    
+    echo "</table>";
+    echo "<input type=\"submit\" value=\"Save\">";
     echo "</form>";
 }
 
