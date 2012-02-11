@@ -24,7 +24,7 @@ class Invoice {
 }
 
 function handle_post($model, $context) {
-    $model["obj"] = new Invoice();
+    
     // service discovery through $context
     // service call
     // redirection to view page -- redirect_and_exit("/invoices/view?id=" . $inserted_id)
@@ -39,15 +39,16 @@ $model = array("title" => "add an invoice");
 // it's good idea to concentrate everything around editing this single object
 // filling the form values each time will be automatic in this case
 
-$model["obj"] = new Invoice();
-
-// we are creating new if the id is NULL, otherwise we are editing an old
 $is_editing = FALSE; // 
-$model["obj"]->cam_id = NULL;
 
 if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
-    $model = handle_post($model, $context);
-    if ($_POST["sent"] == "high") {
+    
+    
+    if (!isset($_POST["sent"])) {
+	echo "SUM ERROR";
+    }
+    
+    else if ($_POST["sent"] == "high") {
 	//only one value come from high campaign id
 	$model["obj"]->cam_id = $_POST["cam_id"];
     }
@@ -61,8 +62,24 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	  VALUES (invoices_id_seq.NEXTVAL,".$_POST["due_at"].",".$_POST["ref_number"].",'0','F',".$_POST["cam_id"].")";
 	
 	$conn_id->beginTransaction ();
-	$conn_id->query(insert);
+	$conn_id->execute(insert);
     }
+    
+    //if we have edited sumthing
+    else if ($_POST["sent"] == "edit") {
+	//opening database connection
+	$conn_id = $context->db;
+	
+	//making edit
+	$update = "UPDATE invoices SET due_at = '".$_POST["due_at"]."', reference_number = '".$_POST["ref_num"]."' WHERE ".$_POST["id"]." = id";
+	
+	$conn_id->beginTransaction ();
+	$conn_id->query($update);
+	
+	redirect("/invoices/view?id=".$_POST["id"]."");
+    }
+    
+     $model = handle_post($model, $context);
 }
 
 if ( $_SERVER["REQUEST_METHOD"] == "GET") {
@@ -72,12 +89,21 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET") {
     }
 }
 
+//if there doesn't exist a model of anything we create one
+
 render_template_begin($model);
+if (!isset($model["obj"])) {
+    //creating new base invoice
+    $model["obj"] = new Invoice();
+    // we are creating new if the id is NULL, otherwise we are editing an old
+    $model["obj"]->cam_id = NULL;
+}
 
 if (!$is_editing) {
 
     if ($model["obj"]->cam_id == NULL) {
-	echo "<form method=\"post\">";
+	//initializing the form when it's not yet know which campaign we're editing
+	echo "<form method=\"post\" action=\"".link_to_url(invoices/edit.php)."\">";
 	  echo "<table border = \"1\">";
 	  echo "<thead>";
 	    echo "<tr>";
@@ -97,9 +123,10 @@ if (!$is_editing) {
 	
 	$conn_id->beginTransaction();
 	
-	//gerring necessary rows                                                                                                                                      
+	//getting necessary rows                                                                                                                                      
 	$rows = $conn_id->query ($query);
 
+	//printing some information about the campaings (not really known what we need to print here)
 	echo "<tbody>";
 	foreach ($rows as $iter) {
 	      echo "<tr>";
@@ -111,27 +138,27 @@ if (!$is_editing) {
 	}	
 	echo "</tbody>";
 	echo "</table>";
-	echo "<input type=\"hidden\" value=\"".$iter["id"]."\" name=\"cam_id\">";                                                                     
+	//sending which campaign to edit
+	echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"cam_id\">";                                                                     
 	//fake send for post function                                                                                                                 
-	echo "<input type=\"hidden\" value=\"high\" name=\"sent\">";  
+	echo "<input type=\"hidden\" value=\"high\" id=\"sent\">";  
 	echo "</form>";
     }
     
+    //where we know which campaign to edit we just print all the information and make it possible to edit what is needed to be edited
     else {
 	echo "<form method=\"post\">";
-	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" method=\"post\" name=\"due_date\" ><br>";
-	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" method=\"post\" name=\"ref_number\"><br>";
+	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" method=\"post\" id=\"due_date\" ><br>";
+	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" method=\"post\" id=\"ref_number\"><br>";
 	echo "Late fee: ".$model["obj"]->late_fee."<br>";
 	echo "Sent: F<br>";
 	//lets send fake value because there is stuff to consider ^^
-	echo "<input type=\"hidden\" value=\"low\" name=\"sent\">";
+	echo "<input type=\"hidden\" value=\"low\" id=\"sent\">";
 	echo "Campaign number: ".$model["obj"]->cam_id."<br>";
-	echo "<input type=\"hidden\" value=\"".$model["obj"]->cam_id."\" name=\"cam_id\">";
+	echo "<input type=\"hidden\" value=\"".$model["obj"]->cam_id."\" id=\"cam_id\">";
 	echo "<input type=\"submit\" value=\"Save\">";
 	echo "</form>";
-											    
-    }
-	
+    }	
 }
 
 else {
@@ -143,16 +170,19 @@ else {
     $conn_id->beginTransaction();
     
     $row = $conn_id->query ($query);
+   
+    //$uri = "~/".$_SERVER['PATH_INFO'];
     
-    echo "<form method = \"post\">";
+    //editing invoice
+    echo "<form method = \"post\" action=\"edit\">";
     foreach ($row as $iter) {
 	echo "<table>";
 	echo "<tr><td> Id: </td>";
 	echo "<td>".$iter["id"]."</td></tr><br>";
 	echo "<tr><td> Due date: </td>";
-	echo "<td><input type=\"text\" value = \"".$iter["due_at"]."\"</td></tr><br>";
+	echo "<td><input type=\"text\" value = \"".$iter["due_at"]."\" id=\"due_at\" name=\"due_at\"></td></tr><br>";
 	echo "<tr><td> Reference number: </td>";
-	echo "<td><input type=\"text\" value = \"".$iter["reference_number"]."\"</td></tr><br>";
+	echo "<td><input type=\"text\" value = \"".$iter["reference_number"]."\" id=\"ref_num\" name=\"ref_num\"></td></tr><br>";
 	echo "<tr><td> Late fee: </td>";
 	echo "<td>".$iter["late_fee"]."</td></tr><br>";
 	echo "<tr><td> Sent: </td>";
@@ -162,13 +192,13 @@ else {
 	echo "<tr><td> Previous invoice: </td>";
 	echo "<td>".$iter["previous_invoice_id"]."</td></tr><br>";
 	echo "</table>";
+	//making fake value send edit to post handle
+	echo  "<input type=\"hidden\" value=\"edit\" id=\"sent\" name=\"sent\">";
+	//also sending necesary id so we can easily edit in the database
+	echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"id\" name=\"id\">";
 	echo "<input type=\"submit\" value=\"Save\">";
     }
     echo "</form>";
 }
 
-?>
-      
-	
-<?php
 render_template_end($model);
