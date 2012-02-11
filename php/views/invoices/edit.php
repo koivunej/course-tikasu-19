@@ -53,16 +53,15 @@ $is_editing = FALSE;
 $dun_mess = FALSE;
 
 if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
-    
-    
+        
     if (!isset($_POST["sent"])) {
 	echo "SUM ERROR";
     }
     
     else if ($_POST["sent"] == "high") {
-	$model["obj"] = new Invoice();
+	$obj = new Invoice();
 	//only one value come from high campaign id
-	$model["obj"]->cam_id = $_POST["cam_id"];
+	$obj->cam_id = $_POST["cam_id"];
 	if (isset($_POST["dun"])) {
 	    $dun_mess = TRUE;
 	}
@@ -109,32 +108,31 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 if ( $_SERVER["REQUEST_METHOD"] == "GET") {
     if ($_GET) {
 	$is_editing = TRUE;
-	$model["obj"] = new Invoice ();
-	$model["obj"]->id = $_GET["id"];
+	$obj = new Invoice ();
+	$obj->id = $_GET["id"];
        
 	if (isset($_GET["dun"])) {
 	    $dun_mess = TRUE;
 	    $is_editing = FALSE;
+	    $obj->cam_id = $_GET["id"];
 	}
     }
 }
 
 //if there doesn't exist a model of anything we create one
 
-
-
-if (!isset($model["obj"])) {
+if (!isset($obj)) {
     //creating new base invoice
     if (!$dun_mess) {
-	$model["obj"] = new Invoice();
+	$obj = new Invoice();
 	// we are creating new if the id is NULL, otherwise we are editing an old
-	$model["obj"]->cam_id = NULL;
+	$obj->cam_id = NULL;
     }
 }
 
 if (!$is_editing) {
 
-    if (!$dun_mess && $model["obj"]->cam_id == NULL) {
+    if (!$dun_mess && $obj->cam_id == NULL) {
 	//initializing the form when it's not yet know which campaign we're editing
 	echo "<form method=\"post\" action=\"edit\">";
 	  echo "<table border = \"1\">";
@@ -153,6 +151,8 @@ if (!$is_editing) {
 	$query = "SELECT DISTINCT campaigns.id,name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
 		   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
 		    OR campaigns.active = 'T')";
+//	$query = "select c.id, c.name, c.starts_at, c.ends_at from campaigns c join invoices i on (i.campaign_id = c.id) WHERE c.active = 'F' GROUP BY c.id 
+//		   HAVING count(i.id) = 0";
 	
 	$conn_id->beginTransaction();
 	
@@ -187,22 +187,22 @@ if (!$is_editing) {
     }
     
     //where we know which campaign to edit we just print all the information and make it possible to edit what is needed to be edited
-    else {	
+    else {
 	echo "<form method=\"post\" action=\"edit\">";
-	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" id=\"due_date\" name=\"due_date\"><br>";
-	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" id=\"ref_num\" name=\"ref_num\"><br>";
+	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$obj->due_at."\" id=\"due_date\" name=\"due_date\"><br>";
+	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$obj->ref_number."\" id=\"ref_num\" name=\"ref_num\"><br>";
 	if ($dun_mess) {
-	    echo "Late fee: <input type=\"text\" value=\"".(string)$model["obj"]->late_fee."\" name=\"dun\"><br>"; 
+	    echo "Late fee: <input type=\"text\" value=\"".$obj->late_fee."\" name=\"dun\"><br>"; 
 	}
 	    
 	else {
-	    echo "Late fee: ".(string)$model["obj"]->late_fee."<br>";
+	    echo "Late fee: ".$obj->late_fee."<br>";
 	}
 	echo "Sent: F<br>";
 	//lets send fake value because there is stuff to consider ^^
 	echo "<input type=\"hidden\" value=\"low\" id=\"sent\" name=\"sent\">";
-	echo "Campaign number: ".$model["obj"]->cam_id."<br>";
-	echo "<input type=\"hidden\" value=\"".$model["obj"]->cam_id."\" id=\"cam_id\" name=\"cam_id\">";
+	echo "Campaign number: ".$obj->cam_id."<br>";
+	echo "<input type=\"hidden\" value=\"".$obj->cam_id."\" id=\"cam_id\" name=\"cam_id\">";
 	echo "<input type=\"submit\" value=\"Save\">";
 	echo "</form>";
     }	
