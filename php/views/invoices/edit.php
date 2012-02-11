@@ -49,6 +49,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
     }
     
     else if ($_POST["sent"] == "high") {
+	$model["obj"] = new Invoice();
 	//only one value come from high campaign id
 	$model["obj"]->cam_id = $_POST["cam_id"];
     }
@@ -59,10 +60,12 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	
 	//making insert
 	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id)
-	  VALUES (invoices_id_seq.NEXTVAL,".$_POST["due_at"].",".$_POST["ref_number"].",'0','F',".$_POST["cam_id"].")";
+	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','0','F','".$_POST["cam_id"]."')";
 	
 	$conn_id->beginTransaction ();
-	$conn_id->execute(insert);
+	$conn_id->query($insert);
+	
+	redirect("/invoices/list");
     }
     
     //if we have edited sumthing
@@ -79,7 +82,8 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	redirect("/invoices/view?id=".$_POST["id"]."");
     }
     
-     $model = handle_post($model, $context);
+    //seems like for some reason dun need this (though would be better to use this ^^)
+    //$model = handle_post($model, $context);
 }
 
 if ( $_SERVER["REQUEST_METHOD"] == "GET") {
@@ -103,7 +107,7 @@ if (!$is_editing) {
 
     if ($model["obj"]->cam_id == NULL) {
 	//initializing the form when it's not yet know which campaign we're editing
-	echo "<form method=\"post\" action=\"".link_to_url(invoices/edit.php)."\">";
+	echo "<form method=\"post\" action=\"edit\">";
 	  echo "<table border = \"1\">";
 	  echo "<thead>";
 	    echo "<tr>";
@@ -139,23 +143,25 @@ if (!$is_editing) {
 	echo "</tbody>";
 	echo "</table>";
 	//sending which campaign to edit
-	echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"cam_id\">";                                                                     
+	if (isset ($iter)) {
+	    echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"cam_id\" name=\"cam_id\">";
+	}
 	//fake send for post function                                                                                                                 
-	echo "<input type=\"hidden\" value=\"high\" id=\"sent\">";  
+	echo "<input type=\"hidden\" value=\"high\" id=\"sent\" name=\"sent\">";  
 	echo "</form>";
     }
     
     //where we know which campaign to edit we just print all the information and make it possible to edit what is needed to be edited
-    else {
-	echo "<form method=\"post\">";
-	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" method=\"post\" id=\"due_date\" ><br>";
-	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" method=\"post\" id=\"ref_number\"><br>";
-	echo "Late fee: ".$model["obj"]->late_fee."<br>";
+    else {	
+	echo "<form method=\"post\" action=\"edit\">";
+	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" id=\"due_date\" name=\"due_date\"><br>";
+	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" id=\"ref_num\" name=\"ref_num\"><br>";
+	echo "Late fee: ".(string)$model["obj"]->late_fee."<br>";
 	echo "Sent: F<br>";
 	//lets send fake value because there is stuff to consider ^^
-	echo "<input type=\"hidden\" value=\"low\" id=\"sent\">";
+	echo "<input type=\"hidden\" value=\"low\" id=\"sent\" name=\"sent\">";
 	echo "Campaign number: ".$model["obj"]->cam_id."<br>";
-	echo "<input type=\"hidden\" value=\"".$model["obj"]->cam_id."\" id=\"cam_id\">";
+	echo "<input type=\"hidden\" value=\"".$model["obj"]->cam_id."\" id=\"cam_id\" name=\"cam_id\">";
 	echo "<input type=\"submit\" value=\"Save\">";
 	echo "</form>";
     }	
