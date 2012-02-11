@@ -2,7 +2,12 @@
 
 /**
  * view for /invoices/add -- add a new invoice
+ * also edit and dun invoice
  */
+
+//accepts "dun" get message which is just dummy to know if we're doing dun invoice
+
+
 
 //Invoice class
 
@@ -39,7 +44,10 @@ $model = array("title" => "add an invoice");
 // it's good idea to concentrate everything around editing this single object
 // filling the form values each time will be automatic in this case
 
-$is_editing = FALSE; // 
+//if we're just editing this will become true
+$is_editing = FALSE;
+//this indicates if we have dun invoice
+$dun_mess = FALSE;
 
 if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
     
@@ -52,15 +60,24 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	$model["obj"] = new Invoice();
 	//only one value come from high campaign id
 	$model["obj"]->cam_id = $_POST["cam_id"];
+	if (isset($_POST["dun"])) {
+	    $dun_mess = TRUE;
+	}
     }
     
     else if ($_POST["sent"] == "low") {
 	//now we can open up db conncetion
 	$conn_id = $context->db;
 	
+	//marking late fee
+	$late_fees = 0;
+	if (isset($_POST["dun"])) {
+	    $late_fees = $_POST["dun"];
+	}
+	
 	//making insert
 	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id)
-	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','0','F','".$_POST["cam_id"]."')";
+	  VALUES (invoices_id_seq.NEXTVAL,' ".$_POST["due_date"]." ',' ".$_POST["ref_num"]." ',' ".$late_fees." ','F',' ".$_POST["cam_id"]." ')";
 	
 	$conn_id->beginTransaction ();
 	$conn_id->query($insert);
@@ -90,6 +107,10 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET") {
     if ($_GET) {
 	$is_editing = TRUE;
 	$model["obj"]->id = $_GET["id"];
+       
+	if (isset($_GET["dun"])) {
+	    $dun_mess = TRUE;
+	}
     }
 }
 
@@ -146,6 +167,12 @@ if (!$is_editing) {
 	if (isset ($iter)) {
 	    echo "<input type=\"hidden\" value=\"".$iter["id"]."\" id=\"cam_id\" name=\"cam_id\">";
 	}
+	
+	//if we have dun invoice we send extra
+	if ($dun_mess) {
+	    echo "<input type=\"hidden\" value=\"dun\" name=\"dun\">";
+	}
+	
 	//fake send for post function                                                                                                                 
 	echo "<input type=\"hidden\" value=\"high\" id=\"sent\" name=\"sent\">";  
 	echo "</form>";
@@ -156,7 +183,13 @@ if (!$is_editing) {
 	echo "<form method=\"post\" action=\"edit\">";
 	echo "Due date (yyyy-mm-dd): <input type=\"text\" value=\"".$model["obj"]->due_at."\" id=\"due_date\" name=\"due_date\"><br>";
 	echo "Reference number (at least 5 letters): <input type=\"text\" value=\"".$model["obj"]->ref_number."\" id=\"ref_num\" name=\"ref_num\"><br>";
-	echo "Late fee: ".(string)$model["obj"]->late_fee."<br>";
+	if ($dun_mess) {
+	    echo "Late fee: <input type=\"text\" value=\"".(string)$model["obj"]->late_fee."\" name=\"dun\"><br>"; 
+	}
+	    
+	else {
+	    echo "Late fee: ".(string)$model["obj"]->late_fee."<br>";
+	}
 	echo "Sent: F<br>";
 	//lets send fake value because there is stuff to consider ^^
 	echo "<input type=\"hidden\" value=\"low\" id=\"sent\" name=\"sent\">";
