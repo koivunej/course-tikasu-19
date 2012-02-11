@@ -6,7 +6,8 @@
  */
 
 //accepts "dun" get message which is just dummy to know if we're doing dun invoice
-
+//with the dun message there should be the id of previous invoice as "id"
+//also campaign id should be sent as "cam_id"
 
 
 //Invoice class
@@ -73,13 +74,16 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	
 	//marking late fee
 	$late_fees = "0";
+	$prev_invoice = "";
 	if (isset($_POST["dun"])) {
 	    $late_fees = $_POST["dun"];
+	    $prev_invoice = $_POST["prev_invoice"];
 	}
 	
 	//making insert
-	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id)
-	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','".$late_fees."','F','".$_POST["cam_id"]."')";
+	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id, previous_invoice_id)
+	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','".$late_fees."','F','".$_POST["cam_id"]."','
+	  ".$prev_invoice."')";
 	
 	$conn_id->beginTransaction ();
 	$conn_id->query($insert);
@@ -114,7 +118,10 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET") {
 	if (isset($_GET["dun"])) {
 	    $dun_mess = TRUE;
 	    $is_editing = FALSE;
-	    $obj->cam_id = $_GET["id"];
+	    //making stuff before hand so we can keep track of previous invoices
+	    $obj->prev_invoice = $_GET["id"];
+	    $obj->cam_id = $_GET["cam_id"];
+	    //$obj->cam_id = $_GET["id"];
 	}
     }
 }
@@ -202,6 +209,12 @@ if (!$is_editing) {
 	//lets send fake value because there is stuff to consider ^^
 	echo "<input type=\"hidden\" value=\"low\" id=\"sent\" name=\"sent\">";
 	echo "Campaign number: ".$obj->cam_id."<br>";
+	
+	//if we're doing dun invoice we add previnvoice information
+	if ($dun_mess) {
+	    echo "Previous invoice: ".$obj->prev_invoice."<br>";
+	    echo "<input type=\"hidden\" value=\"".$obj->prev_invoice."\" name=\"prev_invoice\">";
+	}
 	echo "<input type=\"hidden\" value=\"".$obj->cam_id."\" id=\"cam_id\" name=\"cam_id\">";
 	echo "<input type=\"submit\" value=\"Save\">";
 	echo "</form>";
@@ -212,7 +225,7 @@ else {
     //connection to database
     $conn_id = $context->db;
     
-    $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE campaign_id = ".$model["obj"]->id;
+    $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE id = ".$obj->id;
     
     $conn_id->beginTransaction();
     
