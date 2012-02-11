@@ -41,6 +41,9 @@ global $context;
 
 $model = array("title" => "add an invoice");
 
+
+render_template_begin($model);
+
 // it's good idea to concentrate everything around editing this single object
 // filling the form values each time will be automatic in this case
 
@@ -70,14 +73,14 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	$conn_id = $context->db;
 	
 	//marking late fee
-	$late_fees = 0;
+	$late_fees = "0";
 	if (isset($_POST["dun"])) {
 	    $late_fees = $_POST["dun"];
 	}
 	
 	//making insert
 	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id)
-	  VALUES (invoices_id_seq.NEXTVAL,' ".$_POST["due_date"]." ',' ".$_POST["ref_num"]." ',' ".$late_fees." ','F',' ".$_POST["cam_id"]." ')";
+	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','".$late_fees."','F','".$_POST["cam_id"]."')";
 	
 	$conn_id->beginTransaction ();
 	$conn_id->query($insert);
@@ -106,27 +109,32 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 if ( $_SERVER["REQUEST_METHOD"] == "GET") {
     if ($_GET) {
 	$is_editing = TRUE;
+	$model["obj"] = new Invoice ();
 	$model["obj"]->id = $_GET["id"];
        
 	if (isset($_GET["dun"])) {
 	    $dun_mess = TRUE;
+	    $is_editing = FALSE;
 	}
     }
 }
 
 //if there doesn't exist a model of anything we create one
 
-render_template_begin($model);
+
+
 if (!isset($model["obj"])) {
     //creating new base invoice
-    $model["obj"] = new Invoice();
-    // we are creating new if the id is NULL, otherwise we are editing an old
-    $model["obj"]->cam_id = NULL;
+    if (!$dun_mess) {
+	$model["obj"] = new Invoice();
+	// we are creating new if the id is NULL, otherwise we are editing an old
+	$model["obj"]->cam_id = NULL;
+    }
 }
 
 if (!$is_editing) {
 
-    if ($model["obj"]->cam_id == NULL) {
+    if (!$dun_mess && $model["obj"]->cam_id == NULL) {
 	//initializing the form when it's not yet know which campaign we're editing
 	echo "<form method=\"post\" action=\"edit\">";
 	  echo "<table border = \"1\">";
