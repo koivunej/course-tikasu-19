@@ -28,7 +28,7 @@ global $context;
 $conn_id = $context->db;
 
 //making the query
-$query = "SELECT reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
+$query = "SELECT invoices.id, reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
   AND campaigns.adv_vat = advertisers.VAT";
 
 $conn_id->beginTransaction();
@@ -43,10 +43,10 @@ foreach ($rows as $iter) {
         echo "<td>".$iter["name"]."</td>";
         echo "<td><input type=\"checkbox\" name=\"".$iter["name"]."\" value=\"active\"></td>";
         echo "<td>"; 
-        echo_link('/invoices/view?id='.$iter["reference_number"], 'View');
+        echo_link('/invoices/view?id='.$iter["id"], 'View');
         echo "</td>";
         echo "<td>";
-        echo_link('/invoices/edit?id='.$iter["reference_number"], 'Edit');
+        echo_link('/invoices/edit?id='.$iter["id"], 'Edit');
         echo "</td>";
       echo "</tr>";
     echo "</tbody>";
