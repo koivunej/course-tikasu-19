@@ -35,7 +35,7 @@ class Invoice {
 function handle_post($model, $context) {
     //if there is something wrong in post we just redirect somewhere
     if (!is_valid_post()) {                                                                                                                             
-	redirect("/invoices/list");                                                                                                                                     
+	redirect("/invoices/list");
     }
     
     //now we know we have everything we need for handling post
@@ -76,6 +76,13 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	    $prev_invoice = $_POST["prev_invoice"];
 	}
 	
+	//checking if date is valid
+	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_date"]) || 
+	    !preg_match("/^[0-9]+(,[0-9][0-9]?)?$/", $late_fee)) {
+	    echo "FAILURE IN DATE, FEE OR REFERENCE NUMBER FORMAT";
+	    exit();
+	}
+	
 	//making insert
 	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id, previous_invoice_id)
 	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','".$late_fees."','F','".$_POST["cam_id"]."','
@@ -84,18 +91,27 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	//summoning appropriate function to handle this
 	new_invoice_insert(insert);
 	
-	redirect("/invoices/list");
+	redirect("/invoices/add?id=".$_POST["cam_id"]);
     }
     
     //if we have edited sumthing
     else if ($_POST["sent"] == "edit") {
-	//making edit
-	$update = "UPDATE invoices SET due_at = '".$_POST["due_at"]."', reference_number = '".$_POST["ref_num"]."' WHERE ".$_POST["id"]." = id";
+	//checking if date is valid                                                                                                                           
+	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_at"])) {                                                                  
+	    echo "FAILURE IN DATE FROMAT";
+	    exit();
+	}    
 	
-	//updating invoice
-	update_invoice ($update);
+       
+	else {
+	    //making edit
+	    $update = "UPDATE invoices SET due_at = '".$_POST["due_at"]."', reference_number = '".$_POST["ref_num"]."' WHERE ".$_POST["id"]." = id";
 	
-	redirect("/invoices/view?id=".$_POST["id"]."");
+	    //updating invoice
+	    update_invoice ($update);
+	    
+	    redirect("/invoices/edit?id=".$_POST["id"]."");
+	}
     }
     
     //seems like for some reason dun need this (though would be better to use this ^^)

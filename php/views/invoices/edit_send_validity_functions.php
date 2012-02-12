@@ -2,16 +2,16 @@
 //here we check that post has specific indcators for certain posts
 function is_valid_post () {                    
     //first checking sent (this applies to all)
-    if (isset($_POST["sent"])) {       
+    if (array_key_exists("sent",$_POST)) {       
 	//this is for selection
-	if (isset($_POST["cam_id"])) {                                                                                                                        
+	if (array_key_exists("cam_id",$_POST)) {                                                                                                                        
 	    //we can safely return true because all necessary stuff exists                                                                                    
 	    return TRUE;                                                                                                                                      
 	}                                                                                                                                                     
 	
-	else if (isset($_POST["due_date"]) && isset($_POST["ref_num"]) && isset($_POST["cam_id"])) {                                                          
+	else if (array_key_exists("due_date", $_POST) && array_key_exists("ref_num", $_POST) && array_key_exists("cam_id", $_POST)) {                                                          
 	    //if dun is there then there must be prvious invoice too                                                                                          
-	    if (isset($_POST["dun"]) && !isset($_POST["prev_invoice"])) {                                                                                     
+	    if (array_key_exists("dun",$_POST) && !array_key_exists("prev_invoice",$_POST)) {                                                                                     
 		return FALSE;                                                                                                                                 
 	    }                                                                                                                                                 
 	    
@@ -20,7 +20,7 @@ function is_valid_post () {
 	}                                                                                                                                                     
 	
 	//and when we're editing                                                                                                                              
-	else if (isset($_POST["due_date"]) && isset($_POST["ref_num"]) && isset($_POST["id"])) {                                                              
+	else if (array_key_exists("due_at", $_POST) && array_key_exists("ref_num", $_POST) && array_key_exists("id", $_POST)) {                                                              
 	    return TRUE;                                                                                                                                      
 	}                                                                                                                                                     
     }                                                                                                                                                         
@@ -32,9 +32,9 @@ function is_valid_post () {
 //checking if everything is ok with get 
 function is_valid_get() {               
     //id must exist                     
-    if (isset($_GET["id"])) {           
+    if (array_key_exists("id", $_GET)) {           
 	//also checking stuff when dun is available 
-	if (isset($_GET["dun"]) && (!isset($_GET["id"]) || !isset($_GET["cam_id"]))) {  
+	if (array_key_exists("dun",$_GET) && (!array_key_exists("id", $_GET) || !array_key_exists("cam_id", $_GET))) {  
 	    return FALSE;                                                               
 	}                                                                               
 	return TRUE;                                                                    
