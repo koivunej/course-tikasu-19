@@ -13,49 +13,30 @@
 //include 'edit_database_access.php';
 //include 'edit_send_validity_functions.php';
 
-include 'edit_service.php';
-
-//declaring service for editing
 global $context;
 $edit = new EditService($context);
 
 //Invoice class
 
-class Invoice {
-    function __Invoice () {    
-	$due_at = "1970-01-01";
-	$ref_number = "00000";
-	$late_fee = 0;
-	$sent = "F";
-    }
-    
-    public $id;
-    public $due_at;
-    public $ref_number;
-    public $late_fee;
-    public $sent;
-    public $cam_id;
-    public $prev_invoice;
-}
+$model = array("title" => "add an invoice");
+
 
 function handle_post($model, $context, $edit) {
     //if there is something wrong in post we just redirect somewhere
+    
     if (!$edit->is_valid_post()) {                                                                                                                             
 	redirect("/invoices/list");
     }
-    
+        
     //now we know we have everything we need for handling post
 }
 
-$model = array("title" => "add an invoice");
 
 render_template_begin($model);
 
-// it's good idea to concentrate everything around editing this single object
-// filling the form values each time will be automatic in this case
-
 //if we're just editing this will become true
 $is_editing = FALSE;
+
 //this indicates if we have dun invoice
 $dun_mess = FALSE;
 
