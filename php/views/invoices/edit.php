@@ -9,9 +9,15 @@
 //with the dun message there should be the id of previous invoice as "id"
 //also campaign id should be sent as "cam_id"
 
-include 'edit_view_functions.php';
-include 'edit_database_access.php';
-include 'edit_send_validity_functions.php';
+//include 'edit_view_functions.php';
+//include 'edit_database_access.php';
+//include 'edit_send_validity_functions.php';
+
+include 'edit_service.php';
+
+//declaring service for editing
+global $context;
+$edit = new EditService($context);
 
 //Invoice class
 
@@ -32,16 +38,14 @@ class Invoice {
     public $prev_invoice;
 }
 
-function handle_post($model, $context) {
+function handle_post($model, $context, $edit) {
     //if there is something wrong in post we just redirect somewhere
-    if (!is_valid_post()) {                                                                                                                             
+    if (!$edit->is_valid_post()) {                                                                                                                             
 	redirect("/invoices/list");
     }
     
     //now we know we have everything we need for handling post
 }
-
-global $context;
 
 $model = array("title" => "add an invoice");
 
@@ -56,7 +60,7 @@ $is_editing = FALSE;
 $dun_mess = FALSE;
 
 if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
-    handle_post ($model, $context);
+    handle_post ($model, $context, $edit);
     
     if ($_POST["sent"] == "high") {
 	$obj = new Invoice();
@@ -76,10 +80,20 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	    $prev_invoice = $_POST["prev_invoice"];
 	}
 	
-	//checking if date is valid
+	//checking if reference number already exists
+	$select = "SELECT DISTINCT reference_number FROM invoices  WHERE id <> ".$_POST["id"];
+	$rows = $edit->select_invoices ($select);
+	foreach ($rows as $iter) {
+	    if ($iter["reference_number"] == $_POST["ref_num"]) {
+		echo "FAILURE IN REFERENCE NUMBER UNIQUENES";
+		exit();
+	    }
+	}
+	
+	//checking if date, fee and reference number are valid
 	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_date"]) || 
 	    !preg_match("/^[0-9]+(,[0-9][0-9]?)?$/", $late_fee)) {
-	    echo "FAILURE IN DATE, FEE OR REFERENCE NUMBER FORMAT";
+	    echo "FAILURE IN DATE OR FEE FROMAT";
 	    exit();
 	}
 	
@@ -89,15 +103,25 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	  ".$prev_invoice."')";
 	
 	//summoning appropriate function to handle this
-	new_invoice_insert(insert);
+	$edit->new_invoice_insert(insert);
 	
 	redirect("/invoices/add?id=".$_POST["cam_id"]);
     }
     
     //if we have edited sumthing
     else if ($_POST["sent"] == "edit") {
-	//checking if date is valid                                                                                                                           
-	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_at"])) {                                                                  
+	//checking if reference number already exists 
+	$select = "SELECT DISTINCT reference_number FROM invoices WHERE id <> ".$_POST["id"];
+	$rows = $edit->select_invoices ($select);                         
+	foreach ($rows as $iter) {                                     
+	    if ($iter["reference_number"] == $_POST["ref_num"]) {  
+		echo "FAILURE IN REFERENCE NUMBER UNIQUENES";      
+		exit();                                            
+	    }                                                      
+	}   
+	
+	//checking if date is valid                                                                  
+	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_at"])) {
 	    echo "FAILURE IN DATE FROMAT";
 	    exit();
 	}    
@@ -108,7 +132,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 	    $update = "UPDATE invoices SET due_at = '".$_POST["due_at"]."', reference_number = '".$_POST["ref_num"]."' WHERE ".$_POST["id"]." = id";
 	
 	    //updating invoice
-	    update_invoice ($update);
+	    $edit->update_invoice ($update);
 	    
 	    redirect("/invoices/edit?id=".$_POST["id"]."");
 	}
@@ -119,7 +143,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
 }
 
 if ( $_SERVER["REQUEST_METHOD"] == "GET") {
-    if (is_valid_get ()) {
+    if ($edit->is_valid_get ()) {
 	$is_editing = TRUE;
 	$obj = new Invoice ();
 	$obj->id = $_GET["id"];
@@ -158,15 +182,15 @@ if (!$is_editing) {
 	  WHERE c.active = 'F' GROUP BY c.id HAVING count(i.id)='0')";
        
 	//getting necessary rows                                                                                                                                      
-	$rows = select_invoices($query);
+	$rows = $edit->select_invoices($query);
 	
 	//printing results
-	new_invoice_select($rows,$dun_mess);
+	$edit->new_invoice_select($rows,$dun_mess);
     }
     
     //where we know which campaign to edit we just print all the information and make it possible to edit what is needed to be edited
     else {
-	new_invoice_modify($obj,$dun_mess);
+	$edit->new_invoice_modify($obj,$dun_mess);
     }	
 }
 
@@ -174,8 +198,8 @@ if (!$is_editing) {
 else {
     $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE id = ".$obj->id;
     
-    $row = select_invoices($query);
-    edit_invoice ($row);
+    $row = $edit->select_invoices($query);
+    $edit->edit_invoice ($row);
 }
 
 render_template_end($model);
