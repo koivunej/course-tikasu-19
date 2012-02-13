@@ -7,180 +7,142 @@
 
 //accepts "dun" get message which is just dummy to know if we're doing dun invoice
 //with the dun message there should be the id of previous invoice as "id"
-//also campaign id should be sent as "cam_id"
+//also campaign id should be sent as "campaign_id"
 
-//include 'edit_view_functions.php';
-//include 'edit_database_access.php';
-//include 'edit_send_validity_functions.php';
 
 global $context;
-$edit = new EditService($context);
-
-//Invoice class
 
 $model = array("title" => "add an invoice");
 
 
-function handle_post($model, $context, $edit) {
-    //if there is something wrong in post we just redirect somewhere
-    
-    if (!$edit->is_valid_post()) {                                                                                                                             
-	redirect("/invoices/list");
-    }
-        
-    //now we know we have everything we need for handling post
+function bind_post_vars($instance, $optional = array()) {
+
+	$not_found = array();
+
+	foreach (get_class_vars($instance) as $key => $unused_value) {
+		if (!array_key_exists($key, $_POST) && !array_value_exists($key, $optional)) {
+			$not_found[] = $key;
+		} else {
+			$val = $_POST[$key];
+			if ($val == "NULL") {
+				$val = NULL;
+			}
+			$instance->$key = $val;
+		}
+	}
+	
+	if (count($not_found) > 0) {
+		throw new Exception("Not all required values were bound: " . implode(", ", $not_found) . "; all post keys: " . implode(", ", array_keys($_POST)));
+	}
 }
 
+$tx = $context->db->beginTransaction();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+	// bind values
+	$model["obj"] = new Invoice();
+	
+	if (array_key_exists("campaign_id", $_POST)) {
+		// TODO: check that there are no other values
+		$model["obj"]->campaign_id = intval($_POST["campaign_id"]);
+		$model["obj"]->previous_invoice_id = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
+	} else {
+		// if campaign_id is not found here, it'll be an error
+		bind_post_vars($model["obj"], array("id", "sum", "late_fee", "previous_invoice_id"));
+		
+		try {
+			$context->invoiceService->saveOrUpdate($model["obj"]);
+			$tx->commit();
+			redirect("/invoices/view?id=" . $model["obj"]->id);
+		} catch (DataAccessException $e) {
+			$tx->rollback();
+			$model["errors"][] = $e->getMessage();
+		}
+	}
+	
+} else {
+	$model["obj"] = new Invoice();
+}
 
 render_template_begin($model);
 
-//if we're just editing this will become true
-$is_editing = FALSE;
+if ($model["obj"]->campaign_id !== NULL) {
+	$campaign = $context->campaignService->getById($model["obj"]->campaign_id);
 
-//this indicates if we have dun invoice
-$dun_mess = FALSE;
+	if ($campaign == NULL) {
+		// someone must have just deleted the campaign?
+		$model["errors"][] = "Sorry, campaign was just deleted, pick another one";
+		$model["obj"]->campaign_id = NULL;
+	} else {
+		$model["campaign_name"] = $campaign->name;
+	}
+}
 
-if ( $_SERVER["REQUEST_METHOD"] == "POST" ) {
-    handle_post ($model, $context, $edit);
-    
-    if ($_POST["sent"] == "high") {
-	$obj = new Invoice();
-	//only one value come from high campaign id
-	$obj->cam_id = $_POST["cam_id"];
-	if (isset($_POST["dun"])) {
-	    $dun_mess = TRUE;
-	}
-    }
-    
-    else if ($_POST["sent"] == "low") {	
-	//marking late fee
-	$late_fees = "0";
-	$prev_invoice = "";
-	if (isset($_POST["dun"])) {
-	    $late_fees = $_POST["dun"];
-	    $prev_invoice = $_POST["prev_invoice"];
-	}
-	
-	//checking if reference number already exists
-	$select = "SELECT DISTINCT reference_number FROM invoices  WHERE id <> ".$_POST["id"];
-	$rows = $edit->select_invoices ($select);
-	foreach ($rows as $iter) {
-	    if ($iter["reference_number"] == $_POST["ref_num"]) {
-		echo "FAILURE IN REFERENCE NUMBER UNIQUENES";
+// DOUBLE CHECKING THE campaign_id ON PURPOSE; it might had been deleted between requests!
+if ($model["obj"]->campaign_id == NULL) {
+	$model["campaigns"] = $context->campaignService->findInvoiceableCampaigns();
+	if (count($model["campaigns"]) == 0) {
+		?>
+		<p>Sorry, no campaign needs invoices at the moment!</p>
+		<?php
+		render_template_end();
+		$tx->commit();
 		exit();
-	    }
 	}
-	
-	//checking if date, fee and reference number are valid
-	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_date"]) || 
-	    !preg_match("/^[0-9]+(,[0-9][0-9]?)?$/", $late_fee)) {
-	    echo "FAILURE IN DATE OR FEE FROMAT";
-	    exit();
+}
+
+if ($model["obj"]->previous_invoice_id !== NULL) {
+	$prev_invoice = $context->invoiceService->getById($model["obj"]->previous_invoice_id);
+	if ($prev_invoice == NULL) {
+		$tx->commit();
+		die("Previous invoice was deleted or you spoofed it :(");
 	}
-	
-	//making insert
-	$insert = "INSERT INTO invoices (id, due_at, reference_number, late_fee, sent, campaign_id, previous_invoice_id)
-	  VALUES (invoices_id_seq.NEXTVAL,'".$_POST["due_date"]."','".$_POST["ref_num"]."','".$late_fees."','F','".$_POST["cam_id"]."','
-	  ".$prev_invoice."')";
-	
-	//summoning appropriate function to handle this
-	$edit->new_invoice_insert(insert);
-	
-	redirect("/invoices/add?id=".$_POST["cam_id"]);
-    }
-    
-    //if we have edited sumthing
-    else if ($_POST["sent"] == "edit") {
-	//checking if reference number already exists 
-	$select = "SELECT DISTINCT reference_number FROM invoices WHERE id <> ".$_POST["id"];
-	$rows = $edit->select_invoices ($select);                         
-	foreach ($rows as $iter) {                                     
-	    if ($iter["reference_number"] == $_POST["ref_num"]) {  
-		echo "FAILURE IN REFERENCE NUMBER UNIQUENES";      
-		exit();                                            
-	    }                                                      
-	}   
-	
-	//checking if date is valid                                                                  
-	if (!preg_match("/^[0-9]{4}-([0][0-9]|[1][0-2])-([0-2][0-9]|[3][0-1])$/",$_POST["due_at"])) {
-	    echo "FAILURE IN DATE FROMAT";
-	    exit();
-	}    
-	
-       
-	else {
-	    //making edit
-	    $update = "UPDATE invoices SET due_at = '".$_POST["due_at"]."', reference_number = '".$_POST["ref_num"]."' WHERE ".$_POST["id"]." = id";
-	
-	    //updating invoice
-	    $edit->update_invoice ($update);
-	    
-	    redirect("/invoices/edit?id=".$_POST["id"]."");
-	}
-    }
-    
-    //seems like for some reason dun need this (though would be better to use this ^^)
-    //$model = handle_post($model, $context);
+	$model["previousInvoiceDue"] = $prev_invoice->due_at;
 }
 
-if ( $_SERVER["REQUEST_METHOD"] == "GET") {
-    if ($edit->is_valid_get ()) {
-	$is_editing = TRUE;
-	$obj = new Invoice ();
-	$obj->id = $_GET["id"];
-       
-	if (isset($_GET["dun"])) {
-	    $dun_mess = TRUE;
-	    $is_editing = FALSE;
-	    //making stuff before hand so we can keep track of previous invoices
-	    $obj->prev_invoice = $_GET["id"];
-	    $obj->cam_id = $_GET["cam_id"];
-	    //$obj->cam_id = $_GET["id"];
-	}
-    }
-}
+?>
 
-//if there doesn't exist a model of anything we create one
+<form method="post">
+	<label for="campaign_id_selection">Campaign:</label>
+        <?php if ($model["obj"]->campaign_id == NULL) {?>
+	<select id="campaign_id_selection" name="campaign_id">
+		<?php foreach ($model["campaigns"] as $id => $name) { ?>
+		<option value="<?php echo $id; ?>"><?php echo $name; ?></option>
+		<?php } ?>
+		
+		<input type="submit" value="Continue" />
+	</select>
+	<?php } else { ?>
+		<input type="text" value="<?php echo $model["campaign_name"]; ?>" disabled="disabled" />
+		<input type="hidden" name="campaign_id" value="<?php echo $model["obj"]->campaign_id;?>" />
+		
+		<label for="reference_number_text">Reference number:</label>
+		<input type="text" name="reference_number" id="reference_number_text" value="<?php echo $model["obj"]->reference_number; ?>" />
 
-if (!isset($obj)) {
-    //creating new base invoice
-    if (!$dun_mess) {
-	$obj = new Invoice();
-	// we are creating new if the id is NULL, otherwise we are editing an old
-	$obj->cam_id = NULL;
-    }
-}
+		<label for="due_date_text">Due date:<?php if ($model["obj"]->previous_invoice_id !== NULL) { echo " (Previous was: " . $model["previousInvoiceDue"] . ")"; } ?></label>
+		<input type="text" name="due_date" id="due_date_text" value="<?php echo $model["obj"]->due_date; ?>" />
+		
+		<label for="sum_text">Sum:</label>
+		<input type="text" name="sum" id="sum_text" value="<?php echo $model["obj"]->sum; ?>" disabled="disabled" />
+		
+		<?php if ($model["obj"]->previous_invoice_id !== NULL) { ?>
+			<input type="hidden" name="previous_invoice_id" value="<?php echo $model["obj"]->previous_invoice_id; ?>" />
+			<label for="late_fee_text">Late fee:</label>
+			<input type="text" name="late_fee" id="late_fee_text" value="<?php echo $model["obj"]->late_fee; ?>" />
+		<?php } else { ?>
+			<input type="hidden" name="previous_invoice_id" value="NULL" />
+		<?php } ?>
+		
+		<input type="hidden" name="sent" value="<?php echo $model["obj"]->sent; ?>" />
+		
+		<?php
+		$save_button_text = $model["obj"]->id == NULL ? "Save" : "Update";
+		?>
+		<input type="submit" value="<?php echo $save_button_text; ?>" />
+	<?php } ?>
+</form>
 
-if (!$is_editing) {
 
-    if (!$dun_mess && $obj->cam_id == NULL) {
-
-//	$query = "SELECT DISTINCT campaigns.id,name, starts_at, ends_at FROM campaigns, invoices WHERE campaigns.id NOT IN 
-//		   (SELECT campaigns.id FROM invoices, campaigns WHERE (campaigns.id = campaign_id)
-//		    OR campaigns.active = 'T')";
-	$query = "SELECT DISTINCT ca.id, ca.name, ca.starts_at, ca.ends_at FROM campaigns ca WHERE ca.id = 
-		   (SELECT c.id FROM campaigns c JOIN invoices i ON (i.campaign_id = c.id) 
-	  WHERE c.active = 'F' GROUP BY c.id HAVING count(i.id)='0')";
-       
-	//getting necessary rows                                                                                                                                      
-	$rows = $edit->select_invoices($query);
-	
-	//printing results
-	$edit->new_invoice_select($rows,$dun_mess);
-    }
-    
-    //where we know which campaign to edit we just print all the information and make it possible to edit what is needed to be edited
-    else {
-	$edit->new_invoice_modify($obj,$dun_mess);
-    }	
-}
-
-//we are editing now
-else {
-    $query = "SELECT DISTINCT id,due_at,reference_number,late_fee,sent,campaign_id,previous_invoice_id FROM invoices WHERE id = ".$obj->id;
-    
-    $row = $edit->select_invoices($query);
-    $edit->edit_invoice ($row);
-}
-
+<?php
 render_template_end($model);
