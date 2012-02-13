@@ -3,6 +3,7 @@
 class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     var $handle;
+    var $handling_error = FALSE; // seems that we can have at most 1 error with connection
     
     function __construct($uri, $username, $password) {
 	
@@ -18,7 +19,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     function __destruct() {
 	if ($this->handle) {
 	    $tx = $this->getTransaction();
-	    if ($tx !== NULL && !$tx->isComplete()) {
+	    if ($tx !== NULL && !$tx->isCompleted()) {
 		$tx->rollback();
 		// we really should throw an exception here but the response
 		// has most likely been sent already
@@ -29,7 +30,8 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     }
     
     function check_odbc_error($action) {
-	if (odbc_error()) {
+	if (!$this->handling_error && odbc_error()) {
+	    $this->handling_error = TRUE;
 	    throw new TransactionException($action . " failed: " . odbc_errormsg($this->handle));
 	}
     }
@@ -44,12 +46,12 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     }
     
     protected function doRollbackTransaction() {
-	odbc_rollback($this->handle);
+	@odbc_rollback($this->handle);
 	$this->check_odbc_error("Rollback");
     }
     
     protected function doCommitTransaction() {
-	odbc_commit($this->handle);
+	@odbc_commit($this->handle);
 	$this->check_odbc_error("Commit");
     }
     
@@ -60,7 +62,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 		throw new DataAccessException("Failed to prepare statement: " . $sql);
 	    }
 	    
-	    if (odbc_execute($ps, $args) == FALSE) {
+	    if (!odbc_execute($ps, $args)) {
 		return FALSE;
 	    } else {
 		return $ps;
@@ -73,8 +75,9 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     private function executeAndCheck($sql, $args) {
 	$results = $this->execute($sql, $args);
-	if (!$results) {
-	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
+	if (!$results || odbc_error()) {
+	    $this->handling_error = TRUE;
+	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg($this->handle));
 	}
 	return $results;
     }

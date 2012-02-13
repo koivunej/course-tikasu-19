@@ -50,17 +50,17 @@ class TransactionStatus {
     function commit() {
 	
 	$this->assertNotCompleted();
-	
-	if ($this->rollbackOnly) {
-	    throw new TransactionException();
-	}
-	
+
 	if ($this->parent == FALSE) {
 	    $this->completed = TRUE;
 	    return;
 	}
 	
 	$this->complete();
+	
+	if ($this->rollbackOnly) {
+	    throw new TransactionException('Transaction was marked as rollback only; commit failed');
+	}
     }
     
     function assertNotCompleted() {

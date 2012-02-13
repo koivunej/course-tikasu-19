@@ -22,6 +22,7 @@ abstract class DatabaseConnection {
 	}
 	
 	$this->currentTx = new TransactionStatus($this);
+	$this->doBeginTransaction();
 	return $this->currentTx;
     }
     
@@ -51,9 +52,8 @@ abstract class DatabaseConnection {
 	}
     }
     
-    function actualBeginTransaction($tx) {
+    private function actualBeginTransaction($tx) {
 	$this->doBeginTransaction();
-	$tx->setBegan();
     }
     
     abstract protected function doBeginTransaction();
@@ -83,11 +83,7 @@ abstract class DatabaseConnection {
 	}
     }
 
-    function actualCompleteTransaction($tx) {
-	if (!$tx->hasBegan()) {
-	    die("transaction has not been marked as started");
-	}
-	
+    function actualCompleteTransaction($tx) {	
 	if ($tx->isRollbackOnly()) {
 	    $this->doRollbackTransaction();
 	} else {
