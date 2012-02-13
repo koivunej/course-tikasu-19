@@ -96,7 +96,7 @@ class InvoiceService {
 	}
 	
 	function countFee($campaign_id) {
-		$sql = "SELECT price_per_second * count(ada.id) FROM campaigns c LEFT OUTER JOIN ads ON (ads.campaign_id = c.id) LEFT OUTER JOIN ad_airings ada ON (ada.ad_id = ads.id) WHERE campaign_id = ? GROUP BY price_per_second";
+		$sql = "SELECT price_per_second * count(ada.id) as fee FROM campaigns c LEFT OUTER JOIN ads ON (ads.campaign_id = c.id) LEFT OUTER JOIN ad_airings ada ON (ada.ad_id = ads.id) WHERE campaign_id = ? GROUP BY price_per_second";
 		$args = array($campaign_id);
 		
 		$db = $this->context->db;
@@ -106,7 +106,7 @@ class InvoiceService {
 		try {
 			$fee = $db->queryAtMostOneResult($sql, $args);
 			$tx->commit();
-			return $fee;
+			return $fee["fee"];
 		} catch (Exception $e) {
 			$tx->rollback();
 			throw $e;
