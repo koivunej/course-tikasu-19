@@ -27,12 +27,12 @@ class CampaignService {
 		// second arg: invoices that are past due date
 		$args[] = date("Y-m-d", time() + 7*24*60*60*1000);
 		
-		$sql = "SELECT id, name FROM campaings WHERE active = 'F' AND ends_at <= ? AND (SELECT count(i.id) FROM invoices i WHERE i.campaign_id = campaigns.id AND due_at <= ?) = 0";
+		$sql = "SELECT id, name FROM campaigns WHERE active = 'F' AND ends_at <= ? AND (SELECT count(i.id) FROM invoices i WHERE i.campaign_id = campaigns.id AND due_at <= ?) = 0";
 		
 		try {
 			$results = $db->query($sql, $args);
 		} catch (Exception $e) {
-			$tx->commit();
+			$tx->rollback();
 			throw $e;
 		}
 		
