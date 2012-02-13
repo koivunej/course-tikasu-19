@@ -109,7 +109,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	$this->assertInTransaction();
 	
 	$cmd = substr($sql, 0, 6);
-	if ($cmd != "UPDATE" && $cmd != "DELETE") {
+	if ($cmd != "UPDATE" && $cmd != "DELETE" && $cmd != "INSERT") {
 		throw new DataAccessException("Cannot perform update with sql: " . substr($sql, 0, 15));
 	}
 	
