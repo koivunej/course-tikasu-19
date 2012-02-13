@@ -36,6 +36,10 @@ class InvoiceService {
 	private function update($invoice) {
 		throw new Exception("unimplemented");
 	}
+	
+	function findPreviousInvoice($id) {
+		throw new Exception("unimplemented");
+	}
 
 	
     /**
