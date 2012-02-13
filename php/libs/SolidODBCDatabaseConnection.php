@@ -17,7 +17,14 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     function __destruct() {
 	if ($this->handle) {
+	    $tx = $this->getTransaction();
+	    if ($tx !== NULL && !$tx->isComplete()) {
+		$tx->rollback();
+		// we really should throw an exception here but the response
+		// has most likely been sent already
+	    }
 	    @odbc_close($this->handle);
+	    
 	}
     }
     
@@ -46,12 +53,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	$this->check_odbc_error("Commit");
     }
     
-    function query($sql, $args = array()) {
-
-	$this->assertInTransaction();
-	
-	$results = FALSE;
-	
+    private function execute($sql, $args) {
 	if (count($args) > 0) {
 	    $ps = odbc_prepare($this->handle, $sql);
 	    if (!$ps) {
@@ -59,19 +61,35 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	    }
 	    
 	    if (odbc_execute($ps, $args) == FALSE) {
-		$results = FALSE;
+		return FALSE;
 	    } else {
-		$results = $ps;
+		return $ps;
 	    }
 	} else {
-	    $results = odbc_exec($this->handle, $sql);
+	    return odbc_exec($this->handle, $sql);
 	}
 	
-	$rows = array();
-	
+    }
+    
+    private function executeAndCheck($sql, $args) {
+	$results = $this->execute($sql, $args);
 	if (!$results) {
 	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
 	}
+    }
+    
+    function query($sql, $args = array()) {
+
+	$this->assertInTransaction();
+	
+	$cmd = substr($sql, 0, 6);
+	if ($cmd != "SELECT") {
+		throw new DataAccessException("Cannot query with sql: " . substr($sql, 0, 15));
+	}
+	
+	$results = $this->executeAndCheck($sql, $args);
+	
+	$rows = array();
 	
 	$i = 0;
 	while (odbc_fetch_row($results)) {
@@ -80,6 +98,20 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	}
 	
 	return $rows;
+    }
+
+    function executeUpdate($sql, $args = array()) {
+	
+	$this->assertInTransaction();
+	
+	$cmd = substr($sql, 0, 6);
+	if ($cmd != "UPDATE" && $cmd != "DELETE") {
+		throw new DataAccessException("Cannot perform update with sql: " . substr($sql, 0, 15));
+	}
+	
+	$result = $this->executeAndCheck($sql, $args);
+	
+	return odbc_num_rows($result);
     }
     
     function fetchRow($result, $all = false) {

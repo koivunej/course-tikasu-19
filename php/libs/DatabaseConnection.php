@@ -4,11 +4,7 @@ abstract class DatabaseConnection {
     
     var $currentTx;
     
-    function __construct($uri, $username, $password) {
-	
-	
-	
-	// open connection
+    function __construct() {
 	
     }
     
@@ -67,7 +63,26 @@ abstract class DatabaseConnection {
     abstract protected function doCommitTransaction();
     
     abstract public function query($sql, $args = array());
-    
+
+    public function queryAtMostOneResult($sql, $args = array()) {
+	$results = $this->query($sql, $args);
+	if (count($results) > 1) {
+		throw new DataAccessException("unexpected number or results, expected [0...1], got " . count($results));
+	} else if (count($results) == 1) {
+		return $results[0];
+	}
+	return NULL;
+    }
+
+    abstract public function executeUpdate($sql, $args = array());
+
+    public function executeUpdateForRowCount($expected_row_count, $sql, $args = array()) {
+	$row_count = $this->executeUpdate($sql, $args);
+	if ($row_count !== $expected_row_count) {
+		throw new DataAccessException("unexpected number of rows updated, expected " . $expected_row_count . ", updated " . $row_count);
+	}
+    }
+
     function actualCompleteTransaction($tx) {
 	if (!$tx->hasBegan()) {
 	    die("transaction has not been marked as started");
@@ -84,14 +99,10 @@ abstract class DatabaseConnection {
 
     // populate instance from the row
     function hydrate($instance, $row, $ignored = array()) {
-	
-/*	$instance->id = $row["id"];
-	$instance->username = $row["username"];
-	$instance->password = $row["password"];*/
-	
+
 	foreach ($row as $column => $value) {
 	    if (!property_exists(get_class($instance), $column) && !in_array($column, $ignored)) {
-		die("property [" . $column . "] could not be found from the entity: ". get_class($instance));
+		throw new DataAccessException("property [" . $column . "] could not be found from the entity: ". get_class($instance));
 	    }
 	 
 	    $instance->$column = $value;

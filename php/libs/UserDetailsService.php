@@ -15,10 +15,10 @@ class UserDetailsService {
 	$tx = $db->beginTransaction();
 	
 	try {
-	    $results = $db->query('SELECT * FROM users WHERE username = ? AND password = ?',
+	    $results = $db->queryAtMostOneResult('SELECT * FROM users WHERE username = ? AND password = ?',
 				  array($username, $this->hash($password, $this->salt($username))));
 
-	    if (count($results) == 0) {
+	    if ($results == NULL) {
 		throw new BadCredentialsException();
 	    }
 	    
