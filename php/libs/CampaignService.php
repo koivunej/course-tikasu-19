@@ -65,7 +65,11 @@ class CampaignService {
 		
 		$tx->commit();
 		
-		return $results;
+		$ret = new Campaign();
+		
+		$db->hydrate($ret, $results);
+		
+		return $ret;
 	}
 	
 	/**
