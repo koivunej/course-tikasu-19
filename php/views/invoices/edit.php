@@ -19,8 +19,11 @@ function bind_post_vars($instance, $optional = array()) {
 
 	$not_found = array();
 
-	foreach (get_class_vars($instance) as $key => $unused_value) {
-		if (!array_key_exists($key, $_POST) && !array_value_exists($key, $optional)) {
+	foreach (get_object_vars($instance) as $key => $unused_value) {
+		if (!array_key_exists($key, $_POST)) {
+			if (in_array($key, $optional)) {
+				continue;
+			}
 			$not_found[] = $key;
 		} else {
 			$val = $_POST[$key];
@@ -43,10 +46,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	// bind values
 	$model["obj"] = new Invoice();
 	
-	if (array_key_exists("campaign_id", $_POST)) {
+	if (array_key_exists("campaign_id_selection", $_POST)) {
 		// TODO: check that there are no other values
-		$model["obj"]->campaign_id = intval($_POST["campaign_id"]);
+		$model["obj"]->campaign_id = intval($_POST["campaign_id_selection"]);
 		$model["obj"]->previous_invoice_id = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
+		$model["obj"]->sum = $context->invoiceService->countFee($model["obj"]->campaign_id);
 	} else {
 		// if campaign_id is not found here, it'll be an error
 		bind_post_vars($model["obj"], array("id", "sum", "late_fee", "previous_invoice_id"));
@@ -61,6 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		}
 	}
 	
+} else if (array_key_exists("id", $_GET)) {
+	$model["obj"] = $context->invoiceService->getById($_GET["id"]);
 } else {
 	$model["obj"] = new Invoice();
 }
@@ -101,45 +107,60 @@ if ($model["obj"]->previous_invoice_id !== NULL) {
 	$model["previousInvoiceDue"] = $prev_invoice->due_at;
 }
 
+$tx->commit();
+
 ?>
 
 <form method="post">
+	<div class="field">
 	<label for="campaign_id_selection">Campaign:</label>
-        <?php if ($model["obj"]->campaign_id == NULL) {?>
-	<select id="campaign_id_selection" name="campaign_id">
+	<?php if ($model["obj"]->campaign_id == NULL) {?>
+	<select id="campaign_id_selection" name="campaign_id_selection">
 		<?php foreach ($model["campaigns"] as $id => $name) { ?>
 		<option value="<?php echo $id; ?>"><?php echo $name; ?></option>
 		<?php } ?>
-		
+		</div>
 		<input type="submit" value="Continue" />
 	</select>
 	<?php } else { ?>
-		<input type="text" value="<?php echo $model["campaign_name"]; ?>" disabled="disabled" />
-		<input type="hidden" name="campaign_id" value="<?php echo $model["obj"]->campaign_id;?>" />
 		
+		<input type="text" id="campaign_id_selection" value="<?php echo $model["campaign_name"]; ?>" disabled="disabled" />
+		<input type="hidden" name="campaign_id" value="<?php echo $model["obj"]->campaign_id;?>" />
+		</div>
+		
+		<div class="field">
 		<label for="reference_number_text">Reference number:</label>
 		<input type="text" name="reference_number" id="reference_number_text" value="<?php echo $model["obj"]->reference_number; ?>" />
-
-		<label for="due_date_text">Due date:<?php if ($model["obj"]->previous_invoice_id !== NULL) { echo " (Previous was: " . $model["previousInvoiceDue"] . ")"; } ?></label>
-		<input type="text" name="due_date" id="due_date_text" value="<?php echo $model["obj"]->due_date; ?>" />
+		</div>
 		
+		<div class="field">
+		<label for="due_at_text">Due date:<?php if ($model["obj"]->previous_invoice_id !== NULL) { echo " (Previous was: " . $model["previousInvoiceDue"] . ")"; } ?></label>
+		<input type="text" name="due_at" id="due_at_text" value="<?php echo $model["obj"]->due_at; ?>" />
+		</div>
+		
+		<div class="field">
 		<label for="sum_text">Sum:</label>
 		<input type="text" name="sum" id="sum_text" value="<?php echo $model["obj"]->sum; ?>" disabled="disabled" />
+		</div>
 		
 		<?php if ($model["obj"]->previous_invoice_id !== NULL) { ?>
 			<input type="hidden" name="previous_invoice_id" value="<?php echo $model["obj"]->previous_invoice_id; ?>" />
+			<div class="field">
 			<label for="late_fee_text">Late fee:</label>
 			<input type="text" name="late_fee" id="late_fee_text" value="<?php echo $model["obj"]->late_fee; ?>" />
+			</div>
 		<?php } else { ?>
 			<input type="hidden" name="previous_invoice_id" value="NULL" />
 		<?php } ?>
 		
 		<input type="hidden" name="sent" value="<?php echo $model["obj"]->sent; ?>" />
-		
+		<input type="hidden" name="id" value="<?php echo $model["obj"]->id; ?>" />
 		<?php
 		$save_button_text = $model["obj"]->id == NULL ? "Save" : "Update";
 		?>
+		<div class="field">
 		<input type="submit" value="<?php echo $save_button_text; ?>" />
+		</div>
 	<?php } ?>
 </form>
 
