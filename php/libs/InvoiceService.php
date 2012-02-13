@@ -65,7 +65,7 @@ class InvoiceService {
 	private function update($invoice) {
 	
 		$args = array();
-		$sql = "UPDATE invoices SET due_at = ?, reference_number = ?"
+		$sql = "UPDATE invoices SET due_at = ?, reference_number = ?";
 		
 		$args[] = $invoice->due_at;
 		$args[] = $invoice->reference_number;
