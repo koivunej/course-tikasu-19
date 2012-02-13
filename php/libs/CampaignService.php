@@ -36,9 +36,15 @@ class CampaignService {
 			throw $e;
 		}
 		
+		$ret = array();
+		
+		foreach ($results as $row) {
+			$ret[$row["id"]] = $row["name"];
+		}
+		
 		$tx->commit();
 		
-		return $results;
+		return $ret;
 	}
 
 	public function getById($id) {
