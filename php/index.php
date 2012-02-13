@@ -51,6 +51,8 @@ $context->setFactory("userDetailsService",
 		     "UserDetailsService::createUserDetailsService");
 $context->setFactory("invoiceService",
 		     "InvoiceService::createInvoiceService");
+$context->setFactory("campaignService",
+		     "CampaignService::createCampaignService");
 
 // userDetailsContext provides session management + security
 UserDetailsContext::attach();
