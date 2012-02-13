@@ -24,7 +24,7 @@ class UserDetailsService {
 	    
 	    $result = new UserDetails();
 	    
-	    $db->hydrate($result, $results[0], array('roles'));
+	    $db->hydrate($result, $results, array('roles'));
 	    
 	    $roles = $db->query('SELECT name FROM roles r JOIN users_roles ur ON (ur.role_id = r.id) WHERE ur.user_id = ?',
 				array($result->id));
