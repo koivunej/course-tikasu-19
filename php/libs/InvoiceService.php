@@ -12,7 +12,7 @@ class InvoiceService {
 		$db = $context->db;
 		
 		$tx = $db->beginTransaction();
-		$results = $db->queryAtMostOneResult('SELECT * FROM invoices WHERE id = ?', array($id);
+		$results = $db->queryAtMostOneResult('SELECT * FROM invoices WHERE id = ?', array($id));
 		$tx->commit();
 		
 		$ret = new Invoice();
@@ -22,15 +22,19 @@ class InvoiceService {
 	}
 
 	function saveOrUpdate($invoice) {
-		
+		if ($invoice->id == NULL) {
+			save($invoice);
+		} else {
+			update($invoice);
+		}
 	}
 	
 	private function save($invoice) {
-		
+		throw new Exception("unimplemented");
 	}
 	
 	private function update($invoice) {
-		
+		throw new Exception("unimplemented");
 	}
 
 	
