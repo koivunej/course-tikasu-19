@@ -32,7 +32,7 @@ class InvoiceService {
 	private function save($invoice) {
 	
 		$sql = "INSERT INTO invoices (id, due_at, reference_number, late_fee, campaign_id, previous_invoice_id) "
-			. " VALUES (invoices_id_seq.NEXTVAL, ?, ?, ?, ?, ?)"
+			. " VALUES (invoices_id_seq.NEXTVAL, ?, ?, ?, ?, ?)";
 		
 		$args = array();
 		$args[] = $invoice->due_at;
