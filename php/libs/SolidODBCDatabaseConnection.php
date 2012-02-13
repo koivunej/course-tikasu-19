@@ -76,6 +76,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	if (!$results) {
 	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
 	}
+	return $results;
     }
     
     function query($sql, $args = array()) {
