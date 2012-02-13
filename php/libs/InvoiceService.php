@@ -76,7 +76,7 @@ class InvoiceService {
 		}
 		
 		$sql = $sql . " WHERE id = ?";
-		args[] = $invoice->id;
+		$args[] = $invoice->id;
 		
 		$db = $this->context->db;
 		
