@@ -3,7 +3,6 @@
 class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     var $handle;
-    var $handling_error = FALSE; // seems that we can have at most 1 error with connection
     
     function __construct($uri, $username, $password) {
 	
@@ -18,83 +17,63 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     function __destruct() {
 	if ($this->handle) {
-	    $tx = $this->getTransaction();
-	    if ($tx !== NULL && !$tx->isCompleted()) {
-		$tx->rollback();
-		// we really should throw an exception here but the response
-		// has most likely been sent already
-	    }
 	    @odbc_close($this->handle);
-	    
 	}
     }
     
     function check_odbc_error($action) {
-	if (!$this->handling_error && odbc_error()) {
-	    $this->handling_error = TRUE;
+	if (odbc_error()) {
 	    throw new TransactionException($action . " failed: " . odbc_errormsg($this->handle));
 	}
     }
     
-    protected function doBeginTransaction() {
+    function doBeginTransaction() {
 	// WE NOOP?
 	if (!odbc_autocommit($this->handle, FALSE)) {
 	    throw new TransactionException("Failed to disable autocommit; transaction startup failed");
 	}
+<<<<<<< HEAD
 	odbc_exec($this->handle, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+=======
+	odbc_exec($this->handle, "SET TRANSACTION ISOLATION LEVEL READ COMMITED");
+>>>>>>> d2c21bd231c736a68c206e4036709549dafd7bfb
 	$this->check_odbc_error("Start transaction (set transaction isolation level)");
     }
     
-    protected function doRollbackTransaction() {
-	@odbc_rollback($this->handle);
+    function doRollbackTransaction() {
+	odbc_rollback($this->handle);
 	$this->check_odbc_error("Rollback");
     }
     
-    protected function doCommitTransaction() {
-	@odbc_commit($this->handle);
+    function doCommitTransaction() {
+	odbc_commit($this->handle);
 	$this->check_odbc_error("Commit");
     }
     
-    private function execute($sql, $args) {
+    function query($sql, $args = array()) {
+	
+	$results = FALSE;
+	
 	if (count($args) > 0) {
-
-	    $ps = odbc_prepare($this->handle,$sql);
-
+	    $ps = odbc_prepare($this->handle, $sql);
 	    if (!$ps) {
 		throw new DataAccessException("Failed to prepare statement: " . $sql);
 	    }
-	    if (!odbc_execute($ps, $args)) {
-		return FALSE;
+	    
+	    if (odbc_execute($ps, $args) == FALSE) {
+		$results = FALSE;
 	    } else {
-		return $ps;
+		$results = $ps;
 	    }
 	} else {
-	    return odbc_exec($this->handle, $sql);
+	    $results = odbc_exec($this->handle, $sql);
 	}
-	
-    }
-    
-    private function executeAndCheck($sql, $args) {
-	$results = $this->execute($sql, $args);
-	if (!$results || odbc_error()) {
-	    $this->handling_error = TRUE;
-	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg($this->handle));
-	}
-	return $results;
-    }
-    
-    function query($sql, $args = array()) {
-
-	$this->assertInTransaction();
-	
-	$cmd = substr($sql, 0, 6);
-	if ($cmd != "SELECT") {
-		throw new DataAccessException("Cannot query with sql: " . substr($sql, 0, 15));
-	}
-	
-	$results = $this->executeAndCheck($sql, $args);
 	
 	$rows = array();
+	
+	if (!$results) {
+	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg());
+	}
 	
 	$i = 0;
 	while (odbc_fetch_row($results)) {
@@ -103,20 +82,6 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 	}
 	
 	return $rows;
-    }
-
-    function executeUpdate($sql, $args = array()) {
-	
-	$this->assertInTransaction();
-	
-	$cmd = substr($sql, 0, 6);
-	if ($cmd != "UPDATE" && $cmd != "DELETE" && $cmd != "INSERT") {
-		throw new DataAccessException("Cannot perform update with sql: " . substr($sql, 0, 15));
-	}
-	
-	$result = $this->executeAndCheck($sql, $args);
-	
-	return odbc_num_rows($result);
     }
     
     function fetchRow($result, $all = false) {

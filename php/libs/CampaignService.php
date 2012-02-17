@@ -52,10 +52,10 @@ class CampaignService {
 		$db = $this->context->db;
 		
 		$tx = $db->beginTransaction();
-		
+	    
 		$args = array($id);
 		$sql = "SELECT * FROM campaigns WHERE id = ?";
-		
+	    
 		try {
 			$results = $db->queryAtMostOneResult($sql, $args);
 		} catch (Exception $e) {
@@ -79,6 +79,4 @@ class CampaignService {
 	static function createCampaignService($context) {
 		return new CampaignService($context);
 	}
-    
-    
 }

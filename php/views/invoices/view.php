@@ -6,6 +6,7 @@ render_template_begin($model);
 
 <table border="0">
 <?php
+global $context;
 
 function sendinvoice() {
     $to = "";
@@ -14,30 +15,17 @@ function sendinvoice() {
     mail($to, $subject, $contents, "tikasu");
 }
 
-function printti($query, $printthis) {
-global $context;
-
-$conn_id = $context->db;
-
-$conn_id->beginTransaction();
-
-$rows = $conn_id->query($query);
-
-foreach ($rows as $iter) {
+function printti($left, $right) {
     echo "<tbody>";
-      echo "<tr>";
-             echo "<td>".$printthis."</td>";
-	     echo "<td>".$iter[$printthis]."</td>";
-      echo "</tr>";
+    echo "<tr>";
+    echo "<td>".$left."</td>";
+    echo "<td>".$right."</td>";
+    echo "</tr>";
     echo "</tbody>";
-  }
 }
 
-function addinfo($query3) {
-    global $context;
-    $conn_id = $context->db;
-    $conn_id->beginTransaction();
-    $rows = $conn_id->query($query3);
+function addinfo($row) {
+    
     foreach ($rows as $iter) {
 	echo "<tr>";
 	echo "<td>ad name: ".$iter["name"]."</td>";
@@ -53,94 +41,97 @@ function typer($totype) {
         echo "<td>".$totype."</td>";
     echo "<tr>";
 }
-
-function getkey($query2, $cid) {
-    global $context;
-    $conn_id = $context->db;
-    $conn_id->beginTransaction();
-    $k = $conn_id->query($query2);
-    foreach ($k as $i){
-	//return $i["campaign_id"];
-	return $i[$cid];
-    }
-}
 ?>
 
 <h2> Report </h2>
 <?php
-//queryes:
-//get corresponding id:s for invoice-printing:
-//get campaings id:
-$q = "SELECT campaign_id FROM invoices WHERE reference_number = "; // WHERE reference_number = ";
-$q .= $_GET['id'];
-$campaign_id = getkey($q, "campaign_id");
-//get contactpersons id:
-$q = "SELECT contactperson_id FROM campaigns WHERE id = ";
-$q .= $campaign_id;
-$contactperson_id = getkey($q, "contactperson_id");
-//qet advertisers VAT:
-$q = "SELECT adv_vat FROM campaigns WHERE id = ";
-$q .= $campaign_id;
-$adv_vat = getkey($q, "adv_vat");
-//advertisers information:
-$q = "SELECT address_id FROM advertisers WHERE vat = '";
-$q .= $adv_vat;
-$q .= "'";
-$address_id = getkey($q, "address_id");
-$q = "SELECT city_id FROM addresses WHERE id = ";
-$q .= $address_id;
-$city_id = getkey($q, "city_id");
+//handling get
+if ($_SERVER["REQUEST_METHOD"] == "GET") {
+    
+    //checking if correct get key exists
+    if (array_key_exists("id", $_GET)) {
+	//once we're fairly sure it exists we can get necessary information
+	//getting invoice by id
+	$tx = $context->db->beginTransaction();
+	$model["invoices"] = $context->invoiceService->getById($_GET["id"]);
+	$model["campaigns"] = $context->campaignService->getById($model["invoices"]->campaign_id);
+	$model["advertisers"] = $context->advertiserService->getByVAT($model["campaigns"]->adv_vat);
+	$model["addresses"] = $context->addressService->getById($model["advertisers"]->address_id);
+	$model["contactpersons"] = $context->contactpersonService->getById($model["campaigns"]->contactperson_id);
+	$model["cities"] = $context->cityService->getById($model["addresses"]->city_id);
+	$model["ads"] = $context->adService->getByCamId($model["campaigns"]->id);
+	$tx->commit();
+    }
+	
+    //id there is no id we just redirect back to invoice list
+    else {
+	redirect("/invoices/list");
+    }
+}
 
+
+//printing customer information
 typer("Customer Information:");
-//print name:
-$q = "SELECT firstname, lastname FROM contactpersons WHERE id = ";
-$q .= $contactperson_id;
-printti($q, "firstname");
-printti($q, "lastname");
-//company:
-$q = "SELECT name FROM advertisers WHERE vat = '";
-$q .= $adv_vat;
-$q .= "'";
-printti($q, "name");
+typer("------------------------------------");
+typer("<br>");
+
+//name
+printti("First name: ", $model["contactpersons"]->firstname);
+printti("Last name: ", $model["contactpersons"]->lastname);
+typer("<br>");
+
+//company
+printti("Advertiser name: ", $model["advertisers"]->name);
+
 //and address
-$q = "SELECT address FROM addresses WHERE id = ";
-$q .= $address_id;
-printti($q, "address");
+printti("Address", $model["addresses"]->address);
 //and city:
-$q = "SELECT name FROM cities WHERE id = ";
-$q .= $city_id;
-printti($q, "name");
+printti("City", $model["cities"]->name);
+typer("<br>");
 
 //Information about the campaign:
-typer("Campaign to invoice:");
-$q = "SELECT name, starts_at, ends_at, budget, price_per_second FROM campaigns WHERE id = ";
-$q .= $campaign_id;
-printti($q, "name");
-printti($q, "starts_at");
-printti($q, "ends_at");
-printti($q, "price_per_second");
-printti($q, "budget");
+typer("Campaign information:");
+typer("------------------------------------");
+printti("Name: ", $model["campaigns"]->name);
+printti("Begin date: ", $model["campaigns"]->starts_at);
+printti("End date: ", $model["campaigns"]->ends_at);
+printti("Price per second: ", $model["campaigns"]->price_per_second);
+printti("Budget", $model["campaigns"]->budget);
+typer("<br>");
 
 //ads can be found by campaign_id:
 typer("Aired Ads:");
-$q = "SELECT id, name, duration FROM ads WHERE campaign_id = ";
-$q .= $campaign_id;
-addinfo($q);
+typer("------------------------------------");
+//total amount
+$total = 0;
+foreach ($model["ads"] as $iter) {
+    $total += count($model)*$model["campaigns"]->price_per_second*$iter->duration;
+    printti ("Name: ", $iter->name);
+    printti("Duration: ", $iter->duration);
+    //now we have to summon special model :P
+    $tx = $context->db->beginTransaction();
+    $model["ad_airings"] = $context->adAiringService->getByAdId($iter->id);
+    $tx->commit();
+    printti ("Ad Airing count: ", count($model));
+    printti ("Price: ", count($model)*$model["campaigns"]->price_per_second*$iter->duration);
+    typer("<br>");
+    //then print the airings
+    //foreach ($model["ad_airings"] as $jter) {
+    // 	printti("Aired at: ", $jter->aired_at);
+  //  }
+}
 
+//billing information
 typer("Billing information");
+typer("------------------------------------"); 
 //bankaccount:
 typer("Bank account: XXXX-XXXX");
 //duedate:
-$q = "SELECT due_at, reference_number FROM invoices WHERE reference_number = ";
-$q .= $_GET['id'];
-printti($q, "due_at");
-//reference
-$q = "SELECT reference_number FROM invoices WHERE reference_number = ";
-$q .= $_GET['id'];
-printti($q, "reference_number");
+printti("Due date: ", $model["invoices"]->due_at);
+printti("Reference number: ", $model["invoices"]->reference_number);
+printti("Total sum: ", $total);
 //amount
-typer("Amount:");
-typer("tocount");
+
 sendinvoice();
 ?>
 </table>
@@ -150,9 +141,9 @@ sendinvoice();
 <h2>actions</h2>
 
 <ul>
-<li><?php echo_link('/invoices/edit?id=123', 'Edit invoice');?></li>
-<li><?php echo_link('/invoices/send?id=123', 'Send invoice');?></li>
-<li><?php echo_link('/invoices/delete?id=123', 'Delete invoice');?></li>
+<li><?php echo_link('/invoices/edit?id='.$model["invoices"]->id, 'Edit invoice');?></li>
+<li><?php echo_link('/invoices/send?id='.$model["invoices"]->id, 'Send invoice');?></li>
+<li><?php echo_link('/invoices/delete?id='.$model["invoices"]->id, 'Delete invoice');?></li>
 </ul>
 
 <?php

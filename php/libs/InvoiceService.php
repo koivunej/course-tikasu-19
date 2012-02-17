@@ -9,19 +9,23 @@ class InvoiceService {
 	}
 	
 	function getById($id) {
+	    //querying at most one result from select
 		$db = $this->context->db;
 		
 		$tx = $db->beginTransaction();
 		$results = $db->queryAtMostOneResult('SELECT * FROM invoices WHERE id = ?', array($id));
 		$tx->commit();
 		
+	    //merging results to new invoice class
 		$ret = new Invoice();
 		$db->hydrate($ret, $results, array("sum"));
 		
+	    //returning the invoice class
 		return $ret;
 	}
 
 	function saveOrUpdate($invoice) {
+	    //selecting save or update functions, if we don't know invoices id we save, otherwise update
 		if ($invoice->id == NULL) {
 			$this->save($invoice);
 		} else {
@@ -29,11 +33,14 @@ class InvoiceService {
 		}
 	}
 	
+    //saving new invoice
 	private function save($invoice) {
 	
+	    //prepared sql statement
 		$sql = "INSERT INTO invoices (id, due_at, reference_number, late_fee, campaign_id, previous_invoice_id) "
 			. " VALUES (invoices_id_seq.NEXTVAL, ?, ?, ?, ?, ?)";
 		
+	    //updating arguments for insert
 		$args = array();
 		$args[] = $invoice->due_at;
 		$args[] = $invoice->reference_number;
@@ -46,6 +53,7 @@ class InvoiceService {
 		$tx = $db->beginTransaction();
 		
 		try {
+		    
 			$db->executeUpdateForRowCount(1, $sql, $args);
 			
 			// with multiple concurrent inserts this will most likely
