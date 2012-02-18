@@ -1,29 +1,28 @@
 <?php
+if(isset($_POST['submit'])) {
+removefromdb();
+}
 
 $model["title"] = "invoice deleted";
 render_template_begin($model);
 ?>
 
 <?php
-
-function removefromdb($query2) {
+function removefromdb() {
     global $context;
     $conn_id = $context->db;
     $conn_id->beginTransaction();
-    $conn_id->query($query2);
+	$query2 = "DELETE FROM invoices WHERE id = ";
+	$query2 .= $_GET['id'];
+    $conn_id->remove($query2);
 }
 ?>
 
-<h2> Invoice deleted </h2>
-<?php
-//query for delete:
-$q = "DELETE FROM invoices WHERE reference_number = ";
-$q .= $_GET['id'];
-removefromdb($);
-//get contactpersons id:
-<!-- for simple key: value data use dl -->
+<form action="<?=$_SERVER['PHP_SELF'];?>" method="post">
+<input type="button" name="submit" value="Remove">
+</form>
 
-<h2>actions</h2>
+<h3>Press button and invoice is removed</h3>
 
 <ul>
 </ul>
