@@ -1,6 +1,8 @@
 <?php
+global $context;
+
 if(isset($_POST['submit'])) {
-removefromdb();
+    removefromdb();
 }
 
 $model["title"] = "invoice deleted";
@@ -9,12 +11,7 @@ render_template_begin($model);
 
 <?php
 function removefromdb() {
-    global $context;
-    $conn_id = $context->db;
-    $conn_id->beginTransaction();
-	$query2 = "DELETE FROM invoices WHERE id = ";
-	$query2 .= $_GET['id'];
-    $conn_id->executeUpdateForRowCount(1, $query2, $args);
+ $context->invoiceService->remove($_GET['id']);
 }
 ?>
 
