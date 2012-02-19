@@ -14,7 +14,7 @@ function removefromdb() {
     $conn_id->beginTransaction();
 	$query2 = "DELETE FROM invoices WHERE id = ";
 	$query2 .= $_GET['id'];
-    $conn_id->remove($query2);
+    $conn_id->executeUpdateForRowCount(1, $query2, $args);
 }
 ?>
 
