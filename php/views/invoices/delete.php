@@ -11,7 +11,7 @@ render_template_begin($model);
 
 <?php
 function removefromdb() {
- $context->invoiceService->remove($_GET['id']);
+ $context->InvoiceService->remove($_GET['id']);
 }
 ?>
 
