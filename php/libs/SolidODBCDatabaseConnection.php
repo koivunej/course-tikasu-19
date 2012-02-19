@@ -76,9 +76,19 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     private function executeAndCheck($sql, $args) {
 	$results = $this->execute($sql, $args);
-	if (!$results || odbc_error()) {
+	$sqlstate = odbc_error();
+	if (!$results || $sqlstate) {
 	    $this->handling_error = TRUE;
-	    throw new DataAccessException("Failed to execute query: " . odbc_errormsg($this->handle));
+
+	    $args_f = NULL;
+	    foreach ($args as $key => $val) {
+		if ($args_f !== NULL) $args_f .= ", ";
+		else $args_f = "";
+		$args_f .= gettype($val) . ':' . (is_string($val) ? '[' . $val . ']' : $val);
+	    }
+
+	    throw new DataAccessException($sqlstate . ': ' . odbc_errormsg($this->handle) 
+		. ": query was [" . $sql . "], arguments: " . $args_f);
 	}
 	return $results;
     }
