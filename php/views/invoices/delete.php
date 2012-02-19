@@ -20,9 +20,11 @@ function removefromdb() {
 </form>
 
 <h3>Press button and invoice is removed</h3>
-
+<?php
+echo_link('/invoices/', 'List');
+?>
 <ul>
 </ul>
-
+	
 <?php
 render_template_end($model);
