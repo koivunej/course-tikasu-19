@@ -35,7 +35,7 @@ class InvoiceService {
     
     //remove invoice:
     public function remove($id) {
-    $sql = "DELETE * FROM invoices WHERE id = ?";
+    $sql = "DELETE FROM invoices WHERE id = ?";
     $db = $this->context->db;
 	
     $tx = $db->beginTransaction();
