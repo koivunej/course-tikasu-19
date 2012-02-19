@@ -2,29 +2,18 @@
 global $context;
 
 if(isset($_POST['submit'])) {
-    removefromdb();
+    $context->invoiceService->remove($_GET['id']);
+    redirect("/invoices/list");
+    exit(0);
 }
 
-$model["title"] = "invoice deleted";
+$model["title"] = "delete invoice";
 render_template_begin($model);
 ?>
 
-<?php
-function removefromdb() {
- $context->InvoiceService->remove($_GET['id']);
-}
-?>
-
-<form action="<?=$_SERVER['PHP_SELF'];?>" method="post">
-<input type="button" name="submit" value="Remove">
+<form method="post">
+<input type="submit" name="submit" value="Delete invoice"/>
 </form>
 
-<h3>Press button and invoice is removed</h3>
-<?php
-echo_link('/invoices/list', 'List');
-?>
-<ul>
-</ul>
-	
 <?php
 render_template_end($model);
