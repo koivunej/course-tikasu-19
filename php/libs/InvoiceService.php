@@ -35,12 +35,12 @@ class InvoiceService {
     
     //remove invoice:
     public function remove($id) {
-    $sql = "DELETE FROM invoices WHERE id = ?";
+    $sql = "DELETE FROM invoices WHERE id = ? ";
     $db = $this->context->db;
-	
     $tx = $db->beginTransaction();
-	$args = $id;
-    try {                         
+	$args = Array();
+	$args[] = $id;
+    try {     
     $db->executeUpdateForRowCount(1, $sql, $args);
     
 	$tx->commit();
