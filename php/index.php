@@ -20,6 +20,7 @@ $CFG["mappings"]["/invoices/list"] = array('handler' => "invoices/list.php", 'na
 $CFG["mappings"]["/invoices/add"] = array('handler' => "invoices/edit.php", 'name' => 'Add an invoice', 'hidden' => 'UserDetailsContext::isNotAuthenticated');
 $CFG["mappings"]["/invoices/view"] = array('handler' => 'invoices/view.php', 'hidden' => TRUE);
 $CFG["mappings"]["/invoices/edit"] = array('handler' => 'invoices/edit.php', 'hidden' => TRUE);
+$CFG["mappings"]["/invoices/delete"] = array('handler' => 'invoices/delete.php', 'hidden' => TRUE);
 
 $CFG['site'] = 'http://aapiskukkowww.cs.tut.fi:8080/tikaja/' . basename(dirname(__FILE__));
 
