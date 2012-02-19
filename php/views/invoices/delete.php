@@ -1,4 +1,9 @@
 <?php
+//checking if user is good                                                                                                                                  
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING"));
+
+       
+
 global $context;
 
 if(isset($_POST['submit'])) {

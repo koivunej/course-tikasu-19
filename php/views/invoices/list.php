@@ -5,6 +5,8 @@
  *  - /invoices
  *  - /invoices/list (redirects to /invoices)
  */
+//checking if user is good                                                                                                                                    
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING")); 
 
 $model = array("title" => "invoices listing");
 
@@ -29,7 +31,8 @@ $conn_id = $context->db;
 
 //making the query
 $query = "SELECT invoices.id, reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
-  AND campaigns.adv_vat = advertisers.VAT";
+  AND campaigns.adv_vat = advertisers.VAT
+	   ORDER BY invoices.id DESC";
 
 $conn_id->beginTransaction();
 
@@ -39,7 +42,7 @@ $rows = $conn_id->query ($query);
 foreach ($rows as $iter) {
     echo "<tbody>";
       echo "<tr>";
-        echo "<td>".$iter["reference_number"]."</td>";
+        echo "<td>".$iter["id"]."</td>";
         echo "<td>".$iter["name"]."</td>";
         echo "<td><input type=\"checkbox\" name=\"".$iter["name"]."\" value=\"active\"></td>";
         echo "<td>"; 

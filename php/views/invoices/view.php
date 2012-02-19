@@ -1,4 +1,7 @@
 <?php
+//checking if user is good                                                                                                                                    
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING"));
+
 
 $model["title"] = "invoice details";
 render_template_begin($model);
