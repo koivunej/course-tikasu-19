@@ -1,6 +1,6 @@
 <?php
 
-class BadCredentialsException extends AuthenticationException {
+class UnauthorizedUserException extends AuthenticationException {
     function __construct($msg = '') {
 	parent::__construct($msg);                                                                                                                                                 
     }

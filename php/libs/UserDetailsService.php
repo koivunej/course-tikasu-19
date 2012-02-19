@@ -26,11 +26,17 @@ class UserDetailsService {
 	    
 	    $db->hydrate($result, $results, array('roles'));
 	    
-	    $roles = $db->query('SELECT name FROM roles r JOIN users_roles ur ON (ur.role_id = r.id) WHERE ur.user_id = ?',
+	    $roles = $db->query('SELECT r.name as name FROM roles r JOIN users_roles ur ON (ur.role_id = r.id) WHERE ur.user_id = ?',
 				array($result->id));
 	    
+	    if (count($roles) == 0) {
+		throw new UnauthorizedUserException();
+	    }
+
+	    $result->roles = array();
+
 	    foreach ($roles as $row) {
-		$result->roles[$row['name']] = $row['name'];
+		$result->roles[] = $row['name'];
 	    }
 	    
 	    return $result;

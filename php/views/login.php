@@ -18,6 +18,9 @@ function handle_post($model, $context) {
     } catch (BadCredentialsException $e) {
 	$model['errors'] = 'Wrong username or password';
 	return $model;
+    } catch (UnauthorizedUserException $e) {
+	$model["errors"] = "You don't have any rights granted on this system, contact someone.";
+	return $model;
     } catch (DataAccessException $e) {
 	$model['errors'] = 'Temporary database error, please try again later';
 	return $model;
