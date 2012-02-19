@@ -21,7 +21,7 @@ function removefromdb() {
 
 <h3>Press button and invoice is removed</h3>
 <?php
-echo_link('/invoices/', 'List');
+echo_link('/invoices/list', 'List');
 ?>
 <ul>
 </ul>
