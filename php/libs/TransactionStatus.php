@@ -15,6 +15,11 @@ class TransactionStatus {
     }
 
     private function complete() {
+	if ($this->parent !== NULL) {
+		echo '<pre>';
+		debug_print_backtrace();
+		die("\ncannot complete fake nested transaction</pre>" );
+	}
 	$this->impl->actualCompleteTransaction($this);
     }
     
@@ -51,7 +56,7 @@ class TransactionStatus {
 	
 	$this->assertNotCompleted();
 
-	if ($this->parent == FALSE) {
+	if ($this->parent !== NULL) {
 	    $this->completed = TRUE;
 	    return;
 	}
@@ -74,7 +79,7 @@ class TransactionStatus {
     }
 
     function isCompleted() {
-	if ($this->parent != null) {
+	if ($this->parent !== NULL) {
 	    return $this->parent->isCompleted();
 	}
 	return $this->completed;
