@@ -9,14 +9,10 @@
 //with the dun message there should be the id of previous invoice as "id"
 //also campaign id should be sent as "campaign_id"
 
+//checking if user is good
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING"));
 
 global $context;
-
-//checking if user is good
-$user = UserDetailsContext::getUserOrNull();
-if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {
-    redirect("/home");
-}
 
 $model = array("title" => "add an invoice");
 

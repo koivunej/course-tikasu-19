@@ -1,9 +1,8 @@
 <?php
-//checking if user is good                                                                                                                                    
-$user = UserDetailsContext::getUserOrNull();                                                                                                                  
-if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {                                                                                           
-        redirect("/home");                                                                                                                                        
-} 
+//checking if user is good                                                                                                                                  
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING"));
+
+       
 
 global $context;
 

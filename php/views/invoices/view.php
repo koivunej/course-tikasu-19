@@ -1,9 +1,6 @@
 <?php
 //checking if user is good                                                                                                                                    
-$user = UserDetailsContext::getUserOrNull();                                                                                                                  
-if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {                                                                                           
-        redirect("/home");                                                                                                                                        
-} 
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING"));
 
 
 $model["title"] = "invoice details";

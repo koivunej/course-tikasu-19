@@ -6,11 +6,7 @@
  *  - /invoices/list (redirects to /invoices)
  */
 //checking if user is good                                                                                                                                    
-$user = UserDetailsContext::getUserOrNull();                                                                                                                  
-if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {                                                                                           
-        redirect("/home");                                                                                                                                        
-} 
-
+UserDetailsContext::assertRoles(array("ROLE_ACCOUNTING")); 
 
 $model = array("title" => "invoices listing");
 
