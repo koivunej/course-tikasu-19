@@ -66,7 +66,8 @@ class UserDetailsContext {
     }
     
     static function assertRoles($roleNames) {
-	if (!isAuthenticated() || count(array_intersect($roleNames, getRequiredUser()->roles)) != count($roleNames)) {
+	if (!UserDetailsContext::isAuthenticated() 
+		|| count(array_intersect($roleNames, UserDetailsContext::getRequiredUser()->roles)) != count($roleNames)) {
 	    redirect_to_unauthorized();
 	}
     }
