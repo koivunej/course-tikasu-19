@@ -49,27 +49,29 @@ class CampaignService {
 
 	public function getById($id) {
 		
+		if (!is_numeric($id)) {
+			throw new DataAccessException("Invalid id: " . $id);
+		}
+		$id = intval($id);
+
 		$db = $this->context->db;
 		
 		$tx = $db->beginTransaction();
 	    
-		$args = array($id);
+		$args = array();
 		$sql = "SELECT * FROM campaigns WHERE id = ?";
-	    
+		$args[] = $id;
+
 		try {
 			$results = $db->queryAtMostOneResult($sql, $args);
-		} catch (Exception $e) {
+			$ret = new Campaign();
+			$db->hydrate($ret, $results);
 			$tx->commit();
+			return $ret;
+		} catch (Exception $e) {
+			$tx->rollback();
 			throw $e;
 		}
-		
-		$tx->commit();
-		
-		$ret = new Campaign();
-		
-		$db->hydrate($ret, $results);
-		
-		return $ret;
 	}
 	
 	/**
