@@ -32,7 +32,24 @@ class InvoiceService {
 			$this->update($invoice);
 		}
 	}
+    
+    //remove invoice:
+    public function remove($id) {
+    $sql = "DELETE * FROM invoices WHERE id = ";
+    $sql .= $id;
+    $db = $this->context->db;
 	
+    $tx = $db->beginTransaction();
+	$args = $id;
+    try {                         
+    $db->executeUpdateForRowCount(1, $sql, $args);
+    
+	$tx->commit();
+    } catch (Exception $e) {
+	$tx->rollback();
+	throw $e;
+    }
+ }
     //saving new invoice
 	private function save($invoice) {
 	
@@ -41,7 +58,7 @@ class InvoiceService {
 			. " VALUES (invoices_id_seq.NEXTVAL, ?, ?, ?, ?, ?)";
 		
 	    //updating arguments for insert
-		$args = array();
+	    $args = array();
 		$args[] = $invoice->due_at;
 		$args[] = $invoice->reference_number;
 		$args[] = $invoice->late_fee;
@@ -51,7 +68,11 @@ class InvoiceService {
 		$db = $this->context->db;
 		
 		$tx = $db->beginTransaction();
+	    //class 
+	   // {
 		
+	//    }
+
 		try {
 		    
 			$db->executeUpdateForRowCount(1, $sql, $args);
