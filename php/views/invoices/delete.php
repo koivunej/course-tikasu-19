@@ -1,4 +1,10 @@
 <?php
+//checking if user is good                                                                                                                                    
+$user = UserDetailsContext::getUserOrNull();                                                                                                                  
+if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {                                                                                           
+        redirect("/home");                                                                                                                                        
+} 
+
 global $context;
 
 if(isset($_POST['submit'])) {

@@ -12,6 +12,12 @@
 
 global $context;
 
+//checking if user is good
+$user = UserDetailsContext::getUserOrNull();
+if (($user === NULL) || UserDetailsContext::isNotAuthenticated()) {
+    redirect("/home");
+}
+
 $model = array("title" => "add an invoice");
 
 
@@ -48,13 +54,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	
 	if (array_key_exists("campaign_id_selection", $_POST)) {
 		// TODO: check that there are no other values
-		$model["obj"]->campaign_id = intval($_POST["campaign_id_selection"]);
-		$model["obj"]->previous_invoice_id = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
-		$model["obj"]->sum = $context->invoiceService->countFee($model["obj"]->campaign_id);
+	    $model["obj"]->campaign_id = $_POST["campaign_id_selection"];
+	    $model["obj"]->previous_invoice_id = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
+	    $model["obj"]->sum = $context->invoiceService->countFee($model["obj"]->campaign_id);
 	} else {
 		// if campaign_id is not found here, it'll be an error
 		bind_post_vars($model["obj"], array("id", "sum", "late_fee", "previous_invoice_id"));
-		
+	    
 		try {
 			$context->invoiceService->saveOrUpdate($model["obj"]);
 			$tx->commit();
@@ -74,9 +80,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 render_template_begin($model);
 
 if ($model["obj"]->campaign_id !== NULL) {
-	$campaign = $context->campaignService->getById($model["obj"]->campaign_id);
-
-	if ($campaign == NULL) {
+   	$campaign = $context->campaignService->getById($model["obj"]->campaign_id);
+ 
+    if ($campaign === NULL) {
 		// someone must have just deleted the campaign?
 		$model["errors"][] = "Sorry, campaign was just deleted, pick another one";
 		$model["obj"]->campaign_id = NULL;
@@ -86,7 +92,7 @@ if ($model["obj"]->campaign_id !== NULL) {
 }
 
 // DOUBLE CHECKING THE campaign_id ON PURPOSE; it might had been deleted between requests!
-if ($model["obj"]->campaign_id == NULL) {
+if ($model["obj"]->campaign_id === NULL) {
 	$model["campaigns"] = $context->campaignService->findInvoiceableCampaigns();
 	if (count($model["campaigns"]) == 0) {
 		?>
