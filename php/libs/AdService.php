@@ -26,9 +26,9 @@ class AdService {
 	
 	$tx->commit();                                                                                                                                
 	$rest = array();
-	$ret = new Ad(); 
 	
 	foreach ($results as $iter) {
+	    $ret = new Ad();
 	    $db->hydrate($ret, $iter);
 	    $rest[] = $ret;
 	}
