@@ -18,8 +18,9 @@ render_template_begin($model);
 		<tr>
 			<td>Invoice number</td>
 			<td>Advertiser name</td>
-			<td>Is active</td>
-			<td colspan="2">actions</td>
+			<td>Due at</td>
+			<td>Sent</td>
+			<td colspan="2">Actions</td>
 		</tr>
     	</thead>
 <?php
@@ -30,21 +31,22 @@ global $context;
 $conn_id = $context->db;
 
 //making the query
-$query = "SELECT invoices.id, reference_number, advertisers.name FROM invoices, advertisers, campaigns WHERE invoices.campaign_id = campaigns.id
-  AND campaigns.adv_vat = advertisers.VAT
-	   ORDER BY invoices.id DESC";
+$query = "SELECT invoices.id, invoices.due_at, invoices.sent, advertisers.name "
+	 . "FROM invoices JOIN campaigns ON (invoices.campaign_id = campaigns.id) "
+		       . "JOIN advertisers ON (advertisers.VAT = campaigns.adv_vat) "
+     . "ORDER BY invoices.id DESC";
 
-$conn_id->beginTransaction();
-
-//gerring necessary rows
+$tx = $conn_id->beginTransaction();
 $rows = $conn_id->query ($query);
+$tx->commit();
 
 foreach ($rows as $iter) {
     echo "<tbody>";
       echo "<tr>";
         echo "<td>".$iter["id"]."</td>";
         echo "<td>".$iter["name"]."</td>";
-        echo "<td><input type=\"checkbox\" name=\"".$iter["name"]."\" value=\"active\"></td>";
+	echo '<td>'.$iter["due_at"].'</td>';
+	echo '<td>'.$iter["sent"].'</td>';
         echo "<td>"; 
         echo_link('/invoices/view?id='.$iter["id"], 'View');
         echo "</td>";
@@ -55,6 +57,8 @@ foreach ($rows as $iter) {
     echo "</tbody>";
 }
 	
-echo "</table>";  
+echo "</table>"; 
+
+
 
 render_template_end($model);
