@@ -118,10 +118,7 @@ foreach ($model["ads"] as $iter) {
     printti ("Ad Airing count: ", count($model));
     printti ("Price: ", count($model)*$model["campaigns"]->price_per_second*$iter->duration);
     typer("<br>");
-    //then print the airings
-    //foreach ($model["ad_airings"] as $jter) {
-    // 	printti("Aired at: ", $jter->aired_at);
-  //  }
+    
 }
 
 //billing information
@@ -132,7 +129,10 @@ typer("Bank account: XXXX-XXXX");
 //duedate:
 printti("Due date: ", $model["invoices"]->due_at);
 printti("Reference number: ", $model["invoices"]->reference_number);
-printti("Total sum: ", $total);
+if ($model["invoices"]->previous_invoice_id !== NULL) {
+	printti("Late fee: ", $model["invoices"]->late_fee);
+}
+printti("Total sum: ", $total + $model["invoices"]->late_fee);
 //amount
 
 sendinvoice();
