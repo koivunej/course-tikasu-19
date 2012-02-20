@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			redirect("/invoices/view?id=" . $model["obj"]->id);
 		} catch (DataAccessException $e) {
 			$tx->rollback();
-			$model["errors"][] = $e->getMessage();
+			throw $e;
 		}
 	}
 	
@@ -94,7 +94,7 @@ if ($model["obj"]->campaign_id === NULL) {
 		?>
 		<p>Sorry, no campaign needs invoices at the moment!</p>
 		<?php
-		render_template_end();
+		render_template_end($model);
 		$tx->commit();
 		exit();
 	}
