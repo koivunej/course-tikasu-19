@@ -51,7 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	if (array_key_exists("campaign_id_selection", $_POST)) {
 		// TODO: check that there are no other values
 	    $model["obj"]->campaign_id = $_POST["campaign_id_selection"];
-	    $model["obj"]->previous_invoice_id = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
+	    $model["previousInvoice"] = $context->invoiceService->findPreviousInvoice($model["obj"]->campaign_id);
+	    $model["obj"]->previous_invoice_id = $model["previousInvoice"] !== NULL ? $model["previousInvoice"]->id : NULL;
 	    $model["obj"]->sum = $context->invoiceService->countFee($model["obj"]->campaign_id);
 	} else {
 		// if campaign_id is not found here, it'll be an error
@@ -101,7 +102,10 @@ if ($model["obj"]->campaign_id === NULL) {
 }
 
 if ($model["obj"]->previous_invoice_id !== NULL) {
-	$prev_invoice = $context->invoiceService->getById($model["obj"]->previous_invoice_id);
+	$prev_invoice = $model["previousInvoice"];
+	if ($prev_invoice == NULL) {
+		$prev_invoice = $context->invoiceService->getById($model["obj"]->previous_invoice_id);
+        }
 	if ($prev_invoice == NULL) {
 		$tx->commit();
 		die("Previous invoice was deleted or you spoofed it :(");
