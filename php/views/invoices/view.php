@@ -139,13 +139,11 @@ sendinvoice();
 ?>
 </table>
 
-<!-- for simple key: value data use dl -->
-
 <h2>actions</h2>
 
 <ul>
 <li><?php echo_link('/invoices/edit?id='.$model["invoices"]->id, 'Edit invoice');?></li>
-<li><?php echo_link('/invoices/send?id='.$model["invoices"]->id, 'Send invoice');?></li>
+<li><?php echo_link( ($model["invoices"]->sent == 'T' ? NULL : '/invoices/send?id='.$model["invoices"]->id) , 'Send invoice');?></li>
 <li><?php echo_link('/invoices/delete?id='.$model["invoices"]->id, 'Delete invoice');?></li>
 </ul>
 

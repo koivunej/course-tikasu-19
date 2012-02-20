@@ -146,6 +146,23 @@ class InvoiceService {
 			throw $e;
 		}
 	}
+	
+	function send($id) {
+		$sql = "UPDATE invoices SET sent = 'T' WHERE id = ? AND sent = 'F'";
+		$args = array($id);
+		$db = $this->context->db;
+		
+		$tx = $db->beginTransaction();
+		
+		try {
+			$fee = $db->executeUpdateForRowCount(1, $sql, $args);
+			$tx->commit();
+		} catch (Exception $e) {
+			$tx->rollback();
+			throw $e;
+		}
+		
+	}
 
 	
     /**

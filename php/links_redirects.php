@@ -12,6 +12,10 @@
 function link_to_url($name) {
     global $CFG;
     
+    if ($name === NULL || $name === "") {
+	return "#";
+    }
+
     if ($name[0] != '/') {
 	$name = '/' . $name;
     }
@@ -24,6 +28,11 @@ function link_to_url($name) {
 }
 
 function echo_link($uri_part, $text='') {
+    if ($uri_part == NULL) {
+	if ($text == NULL || $text === '') return;
+	echo $text;
+	return;
+    }
     echo '<a href="' . link_to_url($uri_part) . '">' . (strlen($text) > 0 ? $text : $uri_part) . '</a>';
 }
 
