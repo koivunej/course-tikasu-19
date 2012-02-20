@@ -26,7 +26,7 @@ class InvoiceService {
 
 	function saveOrUpdate($invoice) {
 	    //selecting save or update functions, if we don't know invoices id we save, otherwise update
-		if ($invoice->id === NULL) {
+		if ($invoice->id === NULL || $invoice->id == "") {
 			$this->save($invoice);
 		} else {
 			$this->update($invoice);
@@ -52,33 +52,27 @@ class InvoiceService {
     //saving new invoice
 	private function save($invoice) {
 	
-	    //prepared sql statement
-		$sql = "INSERT INTO invoices (id, due_at, reference_number, late_fee, campaign_id, previous_invoice_id) "
-			. "VALUES (invoices_id_seq.NEXTVAL, ?, ?, ?, ?, ?)";
-		
-	    //updating arguments for insert
-	    $args = array();
-		$args[] = $invoice->due_at;
-		$args[] = $invoice->reference_number;
-		$args[] = $invoice->late_fee;
-		$args[] = $invoice->campaign_id;
-		$args[] = $invoice->previous_invoice_id;
-		
 		$db = $this->context->db;
 		
 		$tx = $db->beginTransaction();
-	    //class 
-	   // {
 		
-	//    }
-
 		try {
+		    $sql = "SELECT CAST(invoices_id_seq.NEXTVAL as INT) as next_id";
+		    $id = $db->queryAtMostOneResult($sql);
+		    $invoice->id = $id["next_id"];
+
+		    $sql = "INSERT INTO invoices (id, due_at, reference_number, late_fee, campaign_id, previous_invoice_id) "
+				. "VALUES (?, ?, ?, ?, ?, ?)";
+		    $args = array();
+		    $args[] = $invoice->id;
+		    $args[] = $invoice->due_at;
+		    $args[] = $invoice->reference_number;
+		    $args[] = $invoice->late_fee;
+		    $args[] = $invoice->campaign_id;
+		    $args[] = $invoice->previous_invoice_id;
+		
 		    $db->executeUpdateForRowCount(1, $sql, $args);
-		    // with multiple concurrent inserts this will most likely
-		    // fail
-		    $sql = "SELECT invoices_id_seq.CURRVAL";
 		    
-		    $invoice->id = $db->queryAtMostOneResult($sql);
 		    $tx->commit();
 		} catch (Exception $e) {
 			$tx->rollback();
