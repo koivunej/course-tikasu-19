@@ -4,19 +4,39 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     
     var $handle;
     var $handling_error = FALSE; // seems that we can have at most 1 error with connection
+    var $uri;
+    var $username;
+    var $password;
     
     function __construct($uri, $username, $password) {
 	
 	putenv('ODBCINI=' . dirname(dirname(__FILE__)) . '/odbc.ini');
 	
-	$this->handle = odbc_connect($uri, $username, $password);
+	$this->uri = $uri;
+	$this->username = $username;
+	$this->password = $password;
+	
+	$this->init();
+    }
+    
+    function init() {
+    
+	$this->close();
+    
+	$this->handle = odbc_connect($this->uri, $this->username, $this->password);
 	
 	if (!$this->handle) {
 	    throw new DataAccessException("unable to connect to database");
 	}
+	
+	$this->handling_error = FALSE;
     }
     
     function __destruct() {
+	$this->close();
+    }
+    
+    function close() {
 	if ($this->handle) {
 	    $tx = $this->getTransaction();
 	    if ($tx !== NULL && !$tx->isCompleted()) {
@@ -25,7 +45,7 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
 		// has most likely been sent already
 	    }
 	    @odbc_close($this->handle);
-	    
+	    unset($this->handle);
 	}
     }
     
@@ -75,6 +95,9 @@ class SolidODBCDatabaseConnection extends DatabaseConnection {
     }
     
     private function executeAndCheck($sql, $args) {
+        if ($this->handling_error) {
+	    throw new DataAccessException("This connection is already broken because of a previous exception; try close()/init()");
+        }
 	$results = $this->execute($sql, $args);
 	$sqlstate = odbc_error();
 	if (!$results || $sqlstate) {
