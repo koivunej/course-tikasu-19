@@ -8,6 +8,15 @@ class InvoiceService {
 		$this->context = $context;
 	}
 	
+	private function hydrateOne($result) {
+		if ($result === NULL) {
+			return NULL;
+		}
+		$ret = new Invoice();
+		$this->context->db->hydrate($ret, $result, array("sum"));
+		return $ret;
+	}
+	
 	function getById($id) {
 	    //querying at most one result from select
 		$db = $this->context->db;
@@ -16,12 +25,7 @@ class InvoiceService {
 		$results = $db->queryAtMostOneResult('SELECT * FROM invoices WHERE id = ?', array($id));
 		$tx->commit();
 		
-	    //merging results to new invoice class
-		$ret = new Invoice();
-		$db->hydrate($ret, $results, array("sum"));
-		
-	    //returning the invoice class
-		return $ret;
+		return $this->hydrateOne($results);
 	}
 
 	function saveOrUpdate($invoice) {
@@ -34,21 +38,20 @@ class InvoiceService {
 	}
     
     //remove invoice:
-    public function remove($id) {
-    $sql = "DELETE FROM invoices WHERE id = ? ";
-    $db = $this->context->db;
-    $tx = $db->beginTransaction();
-	$args = Array();
-	$args[] = $id;
-    try {     
-    $db->executeUpdateForRowCount(1, $sql, $args);
-    
-	$tx->commit();
-    } catch (Exception $e) {
-	$tx->rollback();
-	throw $e;
-    }
- }
+	public function remove($id) {
+		$sql = "DELETE FROM invoices WHERE id = ? ";
+		$db = $this->context->db;
+		$tx = $db->beginTransaction();
+		$args = Array();
+		$args[] = $id;
+		try {     
+			$db->executeUpdateForRowCount(1, $sql, $args);
+			$tx->commit();
+		} catch (Exception $e) {
+			$tx->rollback();
+			throw $e;
+		}
+	}
     //saving new invoice
 	private function save($invoice) {
 	
@@ -110,8 +113,20 @@ class InvoiceService {
 		}
 	}
 	
-	function findPreviousInvoice($id) {
-		return NULL;
+	function findPreviousInvoice($campaign_id) {
+		$sql = "SELECT * FROM invoices WHERE campaign_id = ? ORDER BY due_at DESC LIMIT 1";
+		$db = $this->context->db;
+		$tx = $db->beginTransaction();
+		
+		try {
+			$res = $db->queryAtMostOneResult($sql, array($campaign_id));
+			$ret = $this->hydrateOne($res);
+			$tx->commit();
+			return $ret;
+		} catch (Exception $e) {
+			$tx->rollback();
+			throw $e;
+		}
 	}
 	
 	function countFee($campaign_id) {
