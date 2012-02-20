@@ -59,7 +59,7 @@ class CampaignService {
 		$tx = $db->beginTransaction();
 	    
 		$args = array();
-		$sql = "SELECT * FROM campaigns WHERE id = ?";
+		$sql = "SELECT * FROM campaigns WHERE CAST(id AS VARCHAR) = ?";
 		$args[] = $id;
 
 		try {
